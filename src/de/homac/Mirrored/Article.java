@@ -1,0 +1,210 @@
+/*
+ * Article.java
+ *
+ * Part of the Mirrored app for Android
+ *
+ * Copyright (C) 2010 Holger Macht <holger@homac.de>
+ *
+ * This file is released under the GPLv2.
+ *
+ */
+
+package de.homac.Mirrored;
+
+import java.net.URL;
+import java.net.MalformedURLException;
+import java.io.DataInputStream;
+import java.io.InputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
+
+import android.util.Log;
+import android.util.DisplayMetrics;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.app.Application;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
+class Article extends Object {
+
+	public String title = "";
+	public String description = "";
+	public URL image_url;
+	public Bitmap image = null;
+	public URL url;
+	public String content = "";
+	public String category = "";
+
+	static private final String ARTICLE_URL = "http://m.spiegel.de/article.do?emvAD=";
+	static private final String TAG = "Mirrored," + "Article";
+
+	public Article() {
+	}
+
+	public Article(String urlString) {
+		try {
+			this.url = new URL(urlString);
+
+		} catch (MalformedURLException e) {
+			Log.e("Mirrored", e.toString());
+		}
+
+	}
+
+	public Article(Article a) {
+		title = a.title;
+		url = a.url;
+		image_url = a.image_url;
+		description = a.description;
+		content = a.content;
+		category = a.category;
+		image = a.image;
+	}
+
+	private String _id() {
+		String link = url.toString();
+		int pos_of_equal = link.lastIndexOf("id=");
+
+		if (pos_of_equal == -1) {
+			Log.e(TAG, "Couldn't calculate article id");
+			return null;
+		}
+
+		return link.substring(pos_of_equal+3, link.length());
+	}
+
+	private String _downloadContent(DisplayMetrics dm) {
+		URL url = null;
+		InputStream is = null;
+		String s = "";
+
+		try {
+			url = new URL(ARTICLE_URL+ dm.widthPixels + "x" + dm.heightPixels +
+				      "&id=" + _id());
+			Log.d(TAG, "Downloading " + url.toString());
+
+			is = url.openStream();
+
+			BufferedReader reader = new BufferedReader(new InputStreamReader(is), 8*1024);
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				sb.append(line + "\n");
+			}
+			is.close();
+			s = sb.toString();
+
+		} catch (MalformedURLException e) {
+			Log.e("Mirrored", e.toString());
+		} catch (IOException e) {
+			Log.e("Mirrored", e.toString());
+		}
+
+		return s;
+	}
+
+	private Bitmap _downloadImage() {
+		Bitmap bitmap = null;
+
+		try {
+			bitmap = BitmapFactory.decodeStream(image_url.openStream());
+		} catch (IOException e) {
+			Log.e(TAG, e.toString());
+		}
+
+		return bitmap;
+	}
+
+	public void trimContent(boolean online) {
+		Log.d(TAG, "Trimming article content");
+
+		int start, end;
+
+		// cut everything starting with "Zum Thema" at the bottom of most articles...
+		start = content.indexOf("<div>Zum Thema:");
+		if (start != -1) {
+			end = content.indexOf("</div></div></div></body></html>");
+			content = content.substring(0, start-1) + content.substring(end, content.length());
+		}
+		// cut everything until '<div class="text mode1"', mostly ads
+		start = content.indexOf("<p align=\"center\">");
+		if (start != -1) {
+			end = content.indexOf("</p>");
+			content = content.substring(0, start-1) + content.substring(end+4, content.length());
+		}
+		////////////
+		start = content.indexOf("<strong>MEHR ");
+		if (start != -1) {
+			end = content.indexOf("</div></div></div></body></html>");
+			content = content.substring(0, start-1) + content.substring(end, content.length());
+		}
+
+
+		//////////////
+		// only do the following when not connected to the internet
+		if (!online) {
+			int i = 0;
+			while ((start = content.indexOf("<img")) != -1) {
+				end = content.indexOf('>', start);
+				content = content.substring(0, start-1) + content.substring(end, content.length());
+				i++;
+			}
+			Log.d(TAG, "Replaced " + i + " occurences of <img...>");
+		}
+		///////////////////////
+
+		//		content = content.replaceAll("ddp", "");
+		content = content.replaceAll("FOTOSTRECKE", "");
+		content = content.replaceAll("padding-top: .px;padding-bottom: .px;background-color: #ececec;", "");
+		content = content.replaceAll("padding-top: 8px;background-color: #ececec;", "");
+		content = content.replaceAll("background-color: #ececec;", "");
+		content = content.replaceAll("Video abspielen", "");
+		content = content.replaceAll("separator mode1 ", "");
+		//		content = content.replaceAll("global.css", "sss");
+		content = content.replaceAll("border-color: #ececec;border-style: solid;border-width: ..px;", "");
+	}
+
+	public String getContent(DisplayMetrics dm, boolean online) {
+		if (content != null && content.length() != 0) {
+			Log.d(TAG, "Article already has content, returning it");
+
+			if (!online)
+				trimContent(online);
+
+			return content;
+		} else {
+			Log.d(TAG, "Article doesn't have content, downloading and returning it");
+			content = _downloadContent(dm);
+
+			trimContent(online);
+
+			return content;
+		}
+	}
+
+	public Bitmap getImage(boolean online) {
+		if (!online)
+			return image;
+
+		if (image != null) {
+			Log.d(TAG, "Article already has image, returning it");
+
+			return image;
+		} else {
+			Log.d(TAG, "Article doesn't have image, downloading and returning it");
+
+			if (image_url != null)
+				image = _downloadImage();
+
+			return image;
+		}
+	}
+
+	public void resetContent() {
+		content = "";
+	}
+
+}
