@@ -28,6 +28,7 @@
   <string name="menu_offline_mode">Offline mode</string>
   <string name="menu_online_mode">Online mode</string>
   <string name="menu_refresh">Refresh</string>
+  <string name="menu_back_to_articles_list">Back to overview</string>
   <string name="preferences_category_behaviour">Behaviour</string>
   <string name="preferences_category_visual">Visual</string>
   <string name="preference_start_with_category">Category to start with</string>

@@ -37,8 +37,9 @@ public class ArticleViewer extends Activity {
 	private String TAG;
 	private Mirrored app;
 
-	static final int MENU_SAVE_ARTICLE = 0;
-	static final int MENU_EXTERNAL_BROWSER = 1;
+	static final int MENU_SAVE_ARTICLE		= 0;
+	static final int MENU_EXTERNAL_BROWSER		= 1;
+	static final int MENU_BACK_TO_ARTICLES_LIST	= 2;
 
 	private boolean _online;
 	private WebView _webview;
@@ -149,6 +150,8 @@ public class ArticleViewer extends Activity {
 				.setIcon(android.R.drawable.ic_menu_save);
 			menu.add(Menu.NONE, MENU_EXTERNAL_BROWSER, Menu.NONE, R.string.menu_external_browser)
 				.setIcon(android.R.drawable.ic_menu_view);
+			menu.add(Menu.NONE, MENU_BACK_TO_ARTICLES_LIST, Menu.NONE,
+				 R.string.menu_back_to_articles_list).setIcon(R.drawable.ic_menu_back);
 		}
 
 		return true;
@@ -181,6 +184,11 @@ public class ArticleViewer extends Activity {
 			startActivity(intent);
 
 			return true;
+
+		case MENU_BACK_TO_ARTICLES_LIST:
+			Log.e(TAG, "MENU_BACK_TO_ARTICLES_LIST clicked");
+
+			this.finish();
 		}
 
 		return false;
