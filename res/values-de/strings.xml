@@ -28,6 +28,7 @@
   <string name="menu_external_browser">In externem Browser öffnen</string>
   <string name="menu_offline_mode">Offline-Modus</string>
   <string name="menu_online_mode">Online-Modus</string>
+  <string name="menu_refresh">Neu laden</string>
   <string name="preferences_category_behaviour">Verhalten</string>
   <string name="preferences_category_visual">Erscheinungsbild</string>
   <string name="preference_start_with_category">Kategorie beim Start</string>

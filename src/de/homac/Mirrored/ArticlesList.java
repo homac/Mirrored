@@ -55,6 +55,7 @@ public class ArticlesList extends ListActivity implements Runnable
 	static final int MENU_DELETE_ALL	= 3;
 	static final int MENU_OFFLINE_MODE	= 4;
 	static final int MENU_ONLINE_MODE	= 5;
+	static final int MENU_REFRESH		= 6;
 
 	static final String BASE_FEED = "http://m.spiegel.de/rss.do";
 	static final String BASE_CATEGORY_FEED = BASE_FEED + "?id=";
@@ -259,10 +260,12 @@ public class ArticlesList extends ListActivity implements Runnable
 		menu.add(Menu.NONE, MENU_SAVE_ALL, Menu.NONE, R.string.menu_save_all)
 			.setIcon(android.R.drawable.ic_menu_save);
 
-		if (_internetReady)
+		if (_internetReady) {
 			menu.add(Menu.NONE, MENU_OFFLINE_MODE, Menu.NONE, R.string.menu_offline_mode)
 				.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
-		else {
+			menu.add(Menu.NONE, MENU_REFRESH, Menu.NONE, R.string.menu_refresh)
+				.setIcon(R.drawable.ic_menu_refresh);
+		} else {
 			menu.add(Menu.NONE, MENU_ONLINE_MODE, Menu.NONE, R.string.menu_online_mode)
 				.setIcon(android.R.drawable.ic_menu_upload);
 			if (_articles.size() > 0)
@@ -364,6 +367,18 @@ public class ArticlesList extends ListActivity implements Runnable
 
 			return true;
 
+		case MENU_REFRESH:
+			Log.e(TAG, "MENU_REFRESH clicked");
+
+			intent = new Intent(this, ArticlesList.class);
+
+			if (getIntent().hasExtra(app.EXTRA_CATEGORY))
+				intent.putExtra(app.EXTRA_CATEGORY,
+						getIntent().getExtras().getString(app.EXTRA_CATEGORY));
+
+			intent.setAction(Intent.ACTION_VIEW);
+			startActivity(intent);
+			this.finish();
 		}
 
 		return false;
