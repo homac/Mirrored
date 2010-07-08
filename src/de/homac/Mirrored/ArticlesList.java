@@ -146,7 +146,7 @@ public class ArticlesList extends ListActivity implements Runnable
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-		Log.e(TAG, "onConfigurationChanged()");
+		Log.d(TAG, "onConfigurationChanged()");
 		setContentView(R.layout.articles_list);
 		registerForContextMenu(getListView());
 	}
@@ -222,7 +222,7 @@ public class ArticlesList extends ListActivity implements Runnable
 			thread.start();
 		} else {
 			// we're finally done
-			Log.e(TAG, "all articles fetched, sending message");
+			Log.d(TAG, "all articles fetched, sending message");
 			_handler.sendEmptyMessage(0);
 		}
 	}
@@ -281,7 +281,7 @@ public class ArticlesList extends ListActivity implements Runnable
 
 		switch (item.getItemId()) {
 		case MENU_CATEGORIES:
-			Log.e(TAG, "MENU_CATEGORIES clicked");
+			Log.d(TAG, "MENU_CATEGORIES clicked");
 
 			intent = new Intent(this, CategoriesList.class);
 			// if we're coming from the CategoriesView, don't remember a new CategoriesView,
@@ -297,14 +297,14 @@ public class ArticlesList extends ListActivity implements Runnable
 			return true;
 
 		case MENU_PREFERENCES:
-			Log.e(TAG, "MENU_PREFERENCES clicked");
+			Log.d(TAG, "MENU_PREFERENCES clicked");
 
 			intent = new Intent(this, Preferences.class);
 			startActivity(intent);
 
 			return true;
 		case MENU_SAVE_ALL:
-			Log.e(TAG, "MENU_SAVE_ALL clicked");
+			Log.d(TAG, "MENU_SAVE_ALL clicked");
 
 			if (_saver.storageReady()) {
 				_pdialog = ProgressDialog.show(this, "",
@@ -320,7 +320,7 @@ public class ArticlesList extends ListActivity implements Runnable
 			return true;
 
 		case MENU_DELETE_ALL:
-			Log.e(TAG, "MENU_DELETE_ALL clicked");
+			Log.d(TAG, "MENU_DELETE_ALL clicked");
 
 			DisplayMetrics dm = new DisplayMetrics();
 			getWindowManager().getDefaultDisplay().getMetrics(_displayMetrics());
@@ -341,7 +341,7 @@ public class ArticlesList extends ListActivity implements Runnable
 			return true;
 
 		case MENU_OFFLINE_MODE:
-			Log.e(TAG, "MENU_OFFLINE_MODE clicked");
+			Log.d(TAG, "MENU_OFFLINE_MODE clicked");
 
 			intent = new Intent(this, ArticlesList.class);
 			app.setOfflineMode(true);
@@ -352,7 +352,7 @@ public class ArticlesList extends ListActivity implements Runnable
 			return true;
 
 		case MENU_ONLINE_MODE:
-			Log.e(TAG, "MENU_ONLINE_MODE clicked");
+			Log.d(TAG, "MENU_ONLINE_MODE clicked");
 
 			app.setOfflineMode(false);
 
@@ -368,7 +368,7 @@ public class ArticlesList extends ListActivity implements Runnable
 			return true;
 
 		case MENU_REFRESH:
-			Log.e(TAG, "MENU_REFRESH clicked");
+			Log.d(TAG, "MENU_REFRESH clicked");
 
 			intent = new Intent(this, ArticlesList.class);
 

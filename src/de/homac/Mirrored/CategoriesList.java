@@ -70,7 +70,7 @@ public class CategoriesList extends ListActivity {
 	@Override
 	public void onRestart() {
 		super.onRestart();
-		Log.e(TAG, "onStart()");
+		Log.d(TAG, "onStart()");
 		_counter--;
 	}
 

@@ -100,7 +100,7 @@ public class ArticleViewer extends Activity {
 		if (app.screenOrientation == null) { //first time
 			app.screenOrientation = newOrientation;
 		} else if (app.screenOrientation != newOrientation && _online) {
-			Log.e(TAG, "Screen orientation changed, redownloading article content");
+			Log.d(TAG, "Screen orientation changed, redownloading article content");
 			article.resetContent();
 			article.getContent(_dm, _online);
 			app.screenOrientation = newOrientation;
@@ -161,7 +161,7 @@ public class ArticleViewer extends Activity {
 
 		switch (item.getItemId()) {
 		case MENU_SAVE_ARTICLE:
-			Log.e(TAG, "MENU_SAVE_ARTICLE clicked");
+			Log.d(TAG, "MENU_SAVE_ARTICLE clicked");
 
 			DisplayMetrics dm = new DisplayMetrics();
 			getWindowManager().getDefaultDisplay().getMetrics(dm);
@@ -177,7 +177,7 @@ public class ArticleViewer extends Activity {
 			return true;
 
 		case MENU_EXTERNAL_BROWSER:
-			Log.e(TAG, "MENU_EXTERNAL_BROWSER clicked");
+			Log.d(TAG, "MENU_EXTERNAL_BROWSER clicked");
 
 			Uri uri = Uri.parse(app.getArticle().url.toString());
 			Intent intent = new Intent(Intent.ACTION_VIEW, uri);
@@ -186,7 +186,7 @@ public class ArticleViewer extends Activity {
 			return true;
 
 		case MENU_BACK_TO_ARTICLES_LIST:
-			Log.e(TAG, "MENU_BACK_TO_ARTICLES_LIST clicked");
+			Log.d(TAG, "MENU_BACK_TO_ARTICLES_LIST clicked");
 
 			this.finish();
 		}

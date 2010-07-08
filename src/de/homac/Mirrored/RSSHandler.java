@@ -119,7 +119,7 @@ public class RSSHandler extends DefaultHandler {
 		// fetch and parse articles
 		try {
 
-			Log.e(TAG, "Feed title: "+feedTitle);
+			Log.d(TAG, "Feed title: "+feedTitle);
 			_targetFlag = TARGET_ARTICLES;
 
 			Log.d(TAG, "Parsing articles");
@@ -145,7 +145,7 @@ public class RSSHandler extends DefaultHandler {
 			Log.e(TAG, e.toString());
 		}
 
-		Log.e(TAG, "Found " + _articles.size() + " articles");
+		Log.d(TAG, "Found " + _articles.size() + " articles");
 	}
 
 	public void startElement(String uri, String name, String qName, Attributes atts) {

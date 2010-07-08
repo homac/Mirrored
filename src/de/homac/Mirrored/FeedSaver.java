@@ -85,7 +85,7 @@ public class FeedSaver extends Object {
 		if (storageReady()) {
 			Log.d(TAG, "SD card ready");
 		} else {
-			Log.e(TAG, "SD card not ready");
+			Log.d(TAG, "SD card not ready");
 			return false;
 		}
 
