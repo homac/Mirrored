@@ -44,7 +44,7 @@ public class Mirrored extends Application {
 	public Orientation screenOrientation = null;
 
 	static public final String EXTRA_CATEGORY = "category";
-	static public final String EXTRA_URL = "url";
+
 	static public final String BASE_CATEGORY = "schlagzeilen";
 
  	public void setArticle(Article article) {

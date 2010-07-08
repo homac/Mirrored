@@ -453,11 +453,6 @@ public class ArticlesList extends ListActivity implements Runnable
 		Intent intent = new Intent(this, ArticleViewer.class);
 		Article article = _articles.get(position);
 
-		intent.putExtra(app.EXTRA_URL, article.url.toString());
-		intent.setAction(Intent.ACTION_VIEW);
-
-		getWindowManager().getDefaultDisplay().getMetrics(_displayMetrics());
-
 		app.setArticle(article);
 		app.setFeedSaver(_saver);
 
