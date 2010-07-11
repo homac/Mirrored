@@ -257,14 +257,14 @@ public class ArticlesList extends ListActivity implements Runnable
 			.setIcon(android.R.drawable.ic_menu_more);
 		menu.add(Menu.NONE, MENU_PREFERENCES, Menu.NONE, R.string.menu_preferences)
 			.setIcon(android.R.drawable.ic_menu_preferences);
-		menu.add(Menu.NONE, MENU_SAVE_ALL, Menu.NONE, R.string.menu_save_all)
-			.setIcon(android.R.drawable.ic_menu_save);
 
 		if (_internetReady) {
 			menu.add(Menu.NONE, MENU_OFFLINE_MODE, Menu.NONE, R.string.menu_offline_mode)
 				.setIcon(android.R.drawable.ic_menu_close_clear_cancel);
 			menu.add(Menu.NONE, MENU_REFRESH, Menu.NONE, R.string.menu_refresh)
 				.setIcon(R.drawable.ic_menu_refresh);
+			menu.add(Menu.NONE, MENU_SAVE_ALL, Menu.NONE, R.string.menu_save_all)
+				.setIcon(android.R.drawable.ic_menu_save);
 		} else {
 			menu.add(Menu.NONE, MENU_ONLINE_MODE, Menu.NONE, R.string.menu_online_mode)
 				.setIcon(android.R.drawable.ic_menu_upload);
