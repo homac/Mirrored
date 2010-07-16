@@ -225,6 +225,7 @@ public class RSSHandler extends DefaultHandler {
 			_currentArticle.description = "";
 			// don't change to null, otherwise the first word in the article will be "null"
 			_currentArticle.content = "";
+			_currentArticle.category = "";
 			_article_url_string = "";
 
 		}
