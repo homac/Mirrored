@@ -32,7 +32,7 @@
      android:paddingLeft="0dip"
      android:paddingRight="0dip"
      android:textStyle="bold"
-     android:textSize="9sp"
+     android:textSize="10sp"
      android:textColor="#C3C3C3"
      />
 

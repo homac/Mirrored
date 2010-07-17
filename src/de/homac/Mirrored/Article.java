@@ -87,7 +87,7 @@ class Article extends Object {
 			return "";
 
 		SimpleDateFormat format2 = new SimpleDateFormat("d. MMMM yyyy, HH:mm",
-								Locale.ENGLISH);
+								Locale.getDefault());
 		return format2.format(d);
 	}
 
