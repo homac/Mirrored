@@ -155,6 +155,7 @@ public class FeedSaver extends Object {
 		o += "\n";
 		o += " <item>\n";
 		o += "  <title>"+article.title+"</title>\n";
+		o += "  <guid>"+article.guid+"</guid>\n";
 		o += "  <link>"+article.url.toString()+"</link>\n";
 		o += "  <description>"+article.description+"</description>\n";
 
