@@ -44,6 +44,7 @@ public class RSSHandler extends DefaultHandler {
 	private boolean _inDescription = false;
  	private boolean _inContent = false;
 	private boolean _inCategory = false;
+	private boolean _inGuid = false;
 
 	// feed variables
 	public String feedTitle = "";
@@ -175,6 +176,8 @@ public class RSSHandler extends DefaultHandler {
 			_inContent = true;
 		else if (name.trim().equals("category"))
 			_inCategory = true;
+		else if (name.trim().equals("guid"))
+			_inGuid = true;
 	}
 
 	public void endElement(String uri, String name, String qName)
@@ -192,6 +195,8 @@ public class RSSHandler extends DefaultHandler {
 			_inContent = false;
 		else if (name.trim().equals("category"))
 			_inCategory = false;
+		else if (name.trim().equals("guid"))
+			_inGuid = false;
 
 		// Check if looking for feed, and if feed is complete // not needed csurrently
 		if (_targetFlag == TARGET_FEED && _feedUrl != null && feedTitle.length() > 0) {
@@ -223,6 +228,7 @@ public class RSSHandler extends DefaultHandler {
 			_currentArticle.url = null;
 			_currentArticle.image_url = null;
 			_currentArticle.description = "";
+			_currentArticle.guid = "";
 			// don't change to null, otherwise the first word in the article will be "null"
 			_currentArticle.content = "";
 			_currentArticle.category = "";
@@ -252,6 +258,9 @@ public class RSSHandler extends DefaultHandler {
 				}
 				if (_inCategory) {
 					_currentArticle.category += chars;
+				}
+				if (_inGuid) {
+					_currentArticle.guid += chars;
 				}
 			}
 	}

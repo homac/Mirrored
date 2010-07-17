@@ -19,6 +19,11 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.text.ParsePosition;
+import java.util.Date;
+import java.util.TimeZone;
+import java.util.Locale;
 
 import android.util.Log;
 import android.util.DisplayMetrics;
@@ -37,6 +42,7 @@ class Article extends Object {
 	public URL url;
 	public String content = "";
 	public String category = "";
+	public String guid = "";
 
 	static private final String ARTICLE_URL = "http://m.spiegel.de/article.do?emvAD=";
 	static private final String TAG = "Mirrored," + "Article";
@@ -62,18 +68,31 @@ class Article extends Object {
 		content = a.content;
 		category = a.category;
 		image = a.image;
+		guid = a.guid;
+	}
+
+	public String dateString() {
+		if (guid == null || guid.length() == 0)
+			return null;
+
+		Log.d(TAG, "dateString()");
+
+		String date = guid.substring(guid.indexOf('_')+1);
+		SimpleDateFormat format = new SimpleDateFormat("EEE MMM d HH:mm:ss 'UTC' yyyy",
+							       Locale.ENGLISH);
+		format.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+		Date d = format.parse(date, new ParsePosition(0));
+		if (d == null)
+			return "";
+
+		SimpleDateFormat format2 = new SimpleDateFormat("d. MMMM yyyy, HH:mm",
+								Locale.ENGLISH);
+		return format2.format(d);
 	}
 
 	private String _id() {
-		String link = url.toString();
-		int pos_of_equal = link.lastIndexOf("id=");
-
-		if (pos_of_equal == -1) {
-			Log.e(TAG, "Couldn't calculate article id");
-			return null;
-		}
-
-		return link.substring(pos_of_equal+3, link.length());
+		return guid.substring(0, guid.indexOf('_'));
 	}
 
 	private String _downloadContent(DisplayMetrics dm) {

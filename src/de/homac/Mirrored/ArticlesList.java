@@ -491,6 +491,7 @@ public class ArticlesList extends ListActivity implements Runnable
 			Article article = _articles.get(position);
 
 			TextView headline = (TextView)row.findViewById(R.id.article_headline);
+			TextView date = (TextView)row.findViewById(R.id.article_date);
 			ImageView image = (ImageView)row.findViewById(R.id.article_image);
 			TextView description = (TextView)row.findViewById(R.id.article_description);
 
@@ -499,8 +500,9 @@ public class ArticlesList extends ListActivity implements Runnable
 			headline.setText(article.title);
 			image.setImageBitmap(b);
 			description.setText(article.description);
+			date.setText(article.date());
 
-			return(row);
+			return row;
 		}
 	}
 }
