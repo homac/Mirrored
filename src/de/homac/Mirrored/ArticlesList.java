@@ -500,7 +500,7 @@ public class ArticlesList extends ListActivity implements Runnable
 			headline.setText(article.title);
 			image.setImageBitmap(b);
 			description.setText(article.description);
-			date.setText(article.date());
+			date.setText(article.dateString());
 
 			return row;
 		}
