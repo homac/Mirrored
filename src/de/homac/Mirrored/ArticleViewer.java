@@ -74,9 +74,19 @@ public class ArticleViewer extends Activity {
 					if (_online) {
 						Log.d(TAG, "Loading URL " + url);
 
-						Article a = new Article(BASE_URL+url);
-
 						getWindowManager().getDefaultDisplay().getMetrics(_dm);
+
+						if (!url.toString().contains("article.do")) {
+							Log.d(TAG, "This URL is no article, opening in external browser...");
+							Uri uri = Uri.parse(url.toString() + "&emvAD=" + _dm.widthPixels
+									    + "x" + _dm.heightPixels);
+							Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+							startActivity(intent);
+
+							return true;
+						}
+
+						Article a = new Article(url);
 
 						String content = a.getContent(_dm, _online);
 
