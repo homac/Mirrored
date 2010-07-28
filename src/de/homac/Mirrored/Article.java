@@ -92,6 +92,22 @@ class Article extends Object {
 	}
 
 	private String _id() {
+		if (guid.length() == 0 || guid == null) {
+			String link = url.toString();
+			int start_of_id = link.lastIndexOf("id=");
+
+			if (start_of_id == -1) {
+				Log.e(TAG, "Couldn't calculate article id");
+				return null;
+			}
+
+			int end_of_id = link.lastIndexOf("&");
+			if (end_of_id == -1)
+				end_of_id = link.length();
+
+			return link.substring(start_of_id+3, end_of_id);
+		}
+
 		return guid.substring(0, guid.indexOf('_'));
 	}
 
