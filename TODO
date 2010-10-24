@@ -1,6 +1,5 @@
 ;-*-org-*-
 
-- Different icon?
 - release to market
 - set android:debuggable="false"
 - dark theme for ArticleViewer
