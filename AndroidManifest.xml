@@ -3,6 +3,7 @@
 	  package="de.homac.Mirrored"
 	  android:versionCode="1"
 	  android:versionName="0.1">
+  <uses-sdk android:minSdkVersion="3" />
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
