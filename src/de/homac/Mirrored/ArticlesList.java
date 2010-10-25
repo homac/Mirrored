@@ -81,7 +81,8 @@ public class ArticlesList extends ListActivity implements Runnable
 			app = (Mirrored)getApplication();
 			TAG = app.APP_NAME + ", " + "ArticlesList";
 
-			Log.d(TAG, "onCreate()");
+			if (MDebug.LOG)
+				Log.d(TAG, "onCreate()");
 
 			super.onCreate(icicle);
 
@@ -90,13 +91,15 @@ public class ArticlesList extends ListActivity implements Runnable
 			//			if (_prefDarkBackground)
 			//	setTheme(android.R.style.Theme_Black);
 
-			Log.d(TAG, "Setting content view");
+			if (MDebug.LOG)
+				Log.d(TAG, "Setting content view");
 			setContentView(R.layout.articles_list);
 
 			String category = app.BASE_CATEGORY;
 			// check if we're coming from the category view and/or have a preference category
 			if (getIntent().hasExtra(app.EXTRA_CATEGORY)) {
-				Log.d(TAG, "hasExtra(app.EXTRA_CATEGORY)");
+				if (MDebug.LOG)
+					Log.d(TAG, "hasExtra(app.EXTRA_CATEGORY)");
 
 				category = getIntent().getExtras().getString(app.EXTRA_CATEGORY);
 				
@@ -105,17 +108,20 @@ public class ArticlesList extends ListActivity implements Runnable
 				else
 					_url = new URL(BASE_CATEGORY_FEED+category);
 			} else {
-				Log.d(TAG, "!hasExtra(app.EXTRA_CATEGORY)");
+				if (MDebug.LOG)
+					Log.d(TAG, "!hasExtra(app.EXTRA_CATEGORY)");
 
 				String startWithCategory = app.getStringPreference("PrefStartWithCategory", null);
 				if (startWithCategory != null && startWithCategory.length() != 0
 				    && !startWithCategory.equals("Schlagzeilen")) {
-					Log.d(TAG, "Got category from preferences: " + startWithCategory);
+					if (MDebug.LOG)
+						Log.d(TAG, "Got category from preferences: " + startWithCategory);
 
 					_url = new URL(BASE_CATEGORY_FEED + startWithCategory);
 					category = startWithCategory;
 				} else {
-					Log.d(TAG, "No category set, using BASE_FEED: " + BASE_FEED);
+					if (MDebug.LOG)
+						Log.d(TAG, "No category set, using BASE_FEED: " + BASE_FEED);
 					_url = new URL(BASE_FEED);
 				}
 			}
@@ -139,14 +145,16 @@ public class ArticlesList extends ListActivity implements Runnable
 			registerForContextMenu(getListView());
 
 		} catch (MalformedURLException e) {
-			Log.e(TAG, e.toString());
+			if (MDebug.LOG)
+				Log.e(TAG, e.toString());
 		}
 	}
 
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-		Log.d(TAG, "onConfigurationChanged()");
+		if (MDebug.LOG)
+			Log.d(TAG, "onConfigurationChanged()");
 		setContentView(R.layout.articles_list);
 		registerForContextMenu(getListView());
 	}
@@ -198,7 +206,8 @@ public class ArticlesList extends ListActivity implements Runnable
 			_articles = _feed.getArticles(app.BASE_CATEGORY);
 
 		if (_articles == null) {
-			Log.d(TAG, "No articles available");
+			if (MDebug.LOG)
+				Log.d(TAG, "No articles available");
 			_handler.sendEmptyMessage(0);
 			return;
 		}
@@ -206,11 +215,14 @@ public class ArticlesList extends ListActivity implements Runnable
 		// get offline feed also if online
 		if (_internetReady) {
 			Feed offlineFeed = new Feed(app, _url, false);
-			if (offlineFeed.getArticles() != null)
-				Log.d(TAG, "Offline feed has "+offlineFeed.getArticles().size()
-				      +" articles");
-			else
-				Log.d(TAG, "Offline feed is null");
+			if (offlineFeed.getArticles() != null) {
+				if (MDebug.LOG)
+					Log.d(TAG, "Offline feed has "+offlineFeed.getArticles().size()
+					      +" articles");
+			} else {
+				if (MDebug.LOG)
+					Log.d(TAG, "Offline feed is null");
+			}
 
 			_saver = new FeedSaver(app, offlineFeed, _displayMetrics());
 		} else
@@ -222,7 +234,8 @@ public class ArticlesList extends ListActivity implements Runnable
 			thread.start();
 		} else {
 			// we're finally done
-			Log.d(TAG, "all articles fetched, sending message");
+			if (MDebug.LOG)
+				Log.d(TAG, "all articles fetched, sending message");
 			_handler.sendEmptyMessage(0);
 		}
 	}
@@ -231,7 +244,8 @@ public class ArticlesList extends ListActivity implements Runnable
 		@Override
 		public void handleMessage(Message msg) {
 			if (_articles == null) {
-				Log.d(TAG, "no articles");
+				if (MDebug.LOG)
+					Log.d(TAG, "no articles");
 				return;
 			}
 			
@@ -281,7 +295,8 @@ public class ArticlesList extends ListActivity implements Runnable
 
 		switch (item.getItemId()) {
 		case MENU_CATEGORIES:
-			Log.d(TAG, "MENU_CATEGORIES clicked");
+			if (MDebug.LOG)
+				Log.d(TAG, "MENU_CATEGORIES clicked");
 
 			intent = new Intent(this, CategoriesList.class);
 			// if we're coming from the CategoriesView, don't remember a new CategoriesView,
@@ -290,21 +305,24 @@ public class ArticlesList extends ListActivity implements Runnable
 				intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 			}
 			intent.setAction(Intent.ACTION_VIEW);
-			Log.d(TAG, "Starting CategoriesView");
+			if (MDebug.LOG)
+				Log.d(TAG, "Starting CategoriesView");
 			startActivity(intent);
 			this.finish();
 
 			return true;
 
 		case MENU_PREFERENCES:
-			Log.d(TAG, "MENU_PREFERENCES clicked");
+			if (MDebug.LOG)
+				Log.d(TAG, "MENU_PREFERENCES clicked");
 
 			intent = new Intent(this, Preferences.class);
 			startActivity(intent);
 
 			return true;
 		case MENU_SAVE_ALL:
-			Log.d(TAG, "MENU_SAVE_ALL clicked");
+			if (MDebug.LOG)
+				Log.d(TAG, "MENU_SAVE_ALL clicked");
 
 			if (_saver.storageReady()) {
 				_pdialog = ProgressDialog.show(this, "",
@@ -320,7 +338,8 @@ public class ArticlesList extends ListActivity implements Runnable
 			return true;
 
 		case MENU_DELETE_ALL:
-			Log.d(TAG, "MENU_DELETE_ALL clicked");
+			if (MDebug.LOG)
+				Log.d(TAG, "MENU_DELETE_ALL clicked");
 
 			DisplayMetrics dm = new DisplayMetrics();
 			getWindowManager().getDefaultDisplay().getMetrics(_displayMetrics());
@@ -329,7 +348,8 @@ public class ArticlesList extends ListActivity implements Runnable
 			// ConcurrentException
 			while (_articles.size() > 0) {
 				Article article = _articles.get(_articles.size()-1);
-				Log.d(TAG, "Removing article with title: " + article.title);
+				if (MDebug.LOG)
+					Log.d(TAG, "Removing article with title: " + article.title);
 				_saver.remove(article);
 				// remove deleted row
 				((IconicAdapter)getListView().getAdapter()).remove(article);
@@ -341,7 +361,8 @@ public class ArticlesList extends ListActivity implements Runnable
 			return true;
 
 		case MENU_OFFLINE_MODE:
-			Log.d(TAG, "MENU_OFFLINE_MODE clicked");
+			if (MDebug.LOG)
+				Log.d(TAG, "MENU_OFFLINE_MODE clicked");
 
 			intent = new Intent(this, ArticlesList.class);
 			app.setOfflineMode(true);
@@ -352,7 +373,8 @@ public class ArticlesList extends ListActivity implements Runnable
 			return true;
 
 		case MENU_ONLINE_MODE:
-			Log.d(TAG, "MENU_ONLINE_MODE clicked");
+			if (MDebug.LOG)
+				Log.d(TAG, "MENU_ONLINE_MODE clicked");
 
 			app.setOfflineMode(false);
 
@@ -368,7 +390,8 @@ public class ArticlesList extends ListActivity implements Runnable
 			return true;
 
 		case MENU_REFRESH:
-			Log.d(TAG, "MENU_REFRESH clicked");
+			if (MDebug.LOG)
+				Log.d(TAG, "MENU_REFRESH clicked");
 
 			intent = new Intent(this, ArticlesList.class);
 
@@ -403,11 +426,13 @@ public class ArticlesList extends ListActivity implements Runnable
 
 		switch (item.getItemId()) {
 		case CONTEXT_MENU_DELETE_ID:
-			Log.d(TAG, "CONTEXT_MENU_DELETE_ID clicked");
+			if (MDebug.LOG)
+				Log.d(TAG, "CONTEXT_MENU_DELETE_ID clicked");
 
 			article = _articles.get(info.position);
 
-			Log.d(TAG, "Removing article with title: " + article.title);
+			if (MDebug.LOG)
+				Log.d(TAG, "Removing article with title: " + article.title);
 
 			_saver.remove(article);
 			// remove deleted row
@@ -422,7 +447,8 @@ public class ArticlesList extends ListActivity implements Runnable
 			return true;
 
 		case CONTEXT_MENU_SAVE_ID:
-			Log.d(TAG, "CONTEXT_MENU_SAVE_ID clicked");
+			if (MDebug.LOG)
+				Log.d(TAG, "CONTEXT_MENU_SAVE_ID clicked");
 
 			article = _articles.get(info.position);
 			// get the content, just to be sure it has been downloaded, give false for internet state to
@@ -474,7 +500,8 @@ public class ArticlesList extends ListActivity implements Runnable
 			View row = convertView;
 
 			if (row == null) {
-				Log.d(TAG, "row is null in getView()");
+				if (MDebug.LOG)
+					Log.d(TAG, "row is null in getView()");
 
 				LayoutInflater inflater = getLayoutInflater();
 

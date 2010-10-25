@@ -9,8 +9,7 @@
 
   <application android:name="Mirrored" android:label="@string/app_name"
 	       android:icon="@drawable/mirrored"
-	       android:theme="@android:style/Theme.Light"
-	       android:debuggable="true">
+	       android:theme="@android:style/Theme.Light">
     <activity android:name=".ArticlesList"
 	      android:configChanges="orientation|keyboardHidden"
               android:label="@string/app_name">

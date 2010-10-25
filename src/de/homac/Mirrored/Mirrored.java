@@ -76,14 +76,16 @@ public class Mirrored extends Application {
 
 		APP_NAME = getString(R.string.app_name);
 		TAG = APP_NAME;
-		Log.d(TAG, "starting");
+		if (MDebug.LOG)
+			Log.d(TAG, "starting");
 
 		setOfflineMode(getBooleanPreference("PrefStartWithOfflineMode", false));
 	}
 
 	@Override
 	public void onTerminate() {
-		Log.d(TAG, "onTerminate()");
+		if (MDebug.LOG)
+			Log.d(TAG, "onTerminate()");
 	}
 
 	public boolean online() {
@@ -105,10 +107,13 @@ public class Mirrored extends Application {
 			online = false;
 		}
 
-		if (online)
-			Log.d(TAG, "Internet state: online");
-		else
-			Log.d(TAG, "Internet state: offline");
+		if (online) {
+			if (MDebug.LOG)
+				Log.d(TAG, "Internet state: online");
+		} else {
+			if (MDebug.LOG)
+				Log.d(TAG, "Internet state: offline");
+		}
 
 		return online;
 	}
@@ -139,7 +144,8 @@ public class Mirrored extends Application {
 	}
 
 	public void setOfflineMode(boolean offline) {
-		Log.d(TAG, "Setting offline mode to "+offline);
+		if (MDebug.LOG)
+			Log.d(TAG, "Setting offline mode to "+offline);
 		_offline_mode = offline;
 	}
 

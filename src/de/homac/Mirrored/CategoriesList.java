@@ -42,17 +42,20 @@ public class CategoriesList extends ListActivity {
 		SharedPreferences prefs = PreferenceManager
 			.getDefaultSharedPreferences(getBaseContext());
 		if (prefs.getBoolean("PrefDarkBackground", false)) {
-			Log.d(TAG, "Setting black theme");
+			if (MDebug.LOG)
+				Log.d(TAG, "Setting black theme");
 			setTheme(android.R.style.Theme_Black);
 		}
 
 		super.onCreate(icicle);
 
-		Log.d(TAG, "Loading categoriesView");
+		if (MDebug.LOG)
+			Log.d(TAG, "Loading categoriesView");
 
 		setContentView(R.layout.categories_list);
 
-		Log.d(TAG, "Getting categories array resource");
+		if (MDebug.LOG)
+			Log.d(TAG, "Getting categories array resource");
 		_categories = getResources().getStringArray(R.array.categories);
 
 		List<String> items = new ArrayList<String>();
@@ -70,7 +73,8 @@ public class CategoriesList extends ListActivity {
 	@Override
 	public void onRestart() {
 		super.onRestart();
-		Log.d(TAG, "onStart()");
+		if (MDebug.LOG)
+			Log.d(TAG, "onStart()");
 		_counter--;
 	}
 
@@ -79,7 +83,8 @@ public class CategoriesList extends ListActivity {
 		super.onListItemClick(l, v, position, id);
 
 		String s = _categories[position].substring(0,1).toLowerCase() + _categories[position].substring(1);
-		Log.d(TAG, "putExtra() category: "+s);
+		if (MDebug.LOG)
+			Log.d(TAG, "putExtra() category: "+s);
 
 		Intent intent = new Intent(this, ArticlesList.class);
 		intent.putExtra(app.EXTRA_CATEGORY, s);
@@ -87,9 +92,11 @@ public class CategoriesList extends ListActivity {
 		startActivity(intent);
 
 		// only allow one instance of the categories list view
-		Log.d(TAG, "Checking counter: "+_counter);
+		if (MDebug.LOG)
+			Log.d(TAG, "Checking counter: "+_counter);
 		if (_counter > 1) {
-			Log.d(TAG, "We already have one CategoriesList, finishing this one");
+			if (MDebug.LOG)
+				Log.d(TAG, "We already have one CategoriesList, finishing this one");
 			//			this.finish();
 		}
 	}

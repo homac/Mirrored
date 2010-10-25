@@ -63,7 +63,8 @@ public class ArticleContentDownloader extends Object implements Runnable {
 				thread.join();
 			}
 		} catch (InterruptedException e) {
-			Log.e(TAG, e.toString());
+			if (MDebug.LOG)
+				Log.e(TAG, e.toString());
 		}
 	}
 

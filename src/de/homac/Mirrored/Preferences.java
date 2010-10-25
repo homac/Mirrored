@@ -35,7 +35,8 @@ public class Preferences extends PreferenceActivity {
 	protected void onStop() {
 		super.onStop();
 
-		Log.d(TAG, "onStop()");
+		if (MDebug.LOG)
+			Log.d(TAG, "onStop()");
 
 		app.setOfflineMode(app.getBooleanPreference("PrefStartWithOfflineMode", false));
 	}

@@ -55,7 +55,8 @@ class Article extends Object {
 			this.url = new URL(urlString);
 
 		} catch (MalformedURLException e) {
-			Log.e("Mirrored", e.toString());
+			if (MDebug.LOG)
+				Log.e("Mirrored", e.toString());
 		}
 
 	}
@@ -75,7 +76,8 @@ class Article extends Object {
 		if (guid == null || guid.length() == 0)
 			return null;
 
-		Log.d(TAG, "dateString()");
+		if (MDebug.LOG)
+			Log.d(TAG, "dateString()");
 
 		String date = guid.substring(guid.indexOf('_')+1);
 		SimpleDateFormat format = new SimpleDateFormat("EEE MMM d HH:mm:ss 'UTC' yyyy",
@@ -97,7 +99,8 @@ class Article extends Object {
 			int start_of_id = link.lastIndexOf("id=");
 
 			if (start_of_id == -1) {
-				Log.e(TAG, "Couldn't calculate article id");
+				if (MDebug.LOG)
+					Log.e(TAG, "Couldn't calculate article id");
 				return null;
 			}
 
@@ -119,7 +122,8 @@ class Article extends Object {
 		try {
 			url = new URL(ARTICLE_URL+ dm.widthPixels + "x" + dm.heightPixels +
 				      "&id=" + _id());
-			Log.d(TAG, "Downloading " + url.toString());
+			if (MDebug.LOG)
+				Log.d(TAG, "Downloading " + url.toString());
 
 			is = url.openStream();
 
@@ -133,9 +137,11 @@ class Article extends Object {
 			s = sb.toString();
 
 		} catch (MalformedURLException e) {
-			Log.e("Mirrored", e.toString());
+			if (MDebug.LOG)
+				Log.e("Mirrored", e.toString());
 		} catch (IOException e) {
-			Log.e("Mirrored", e.toString());
+			if (MDebug.LOG)
+				Log.e("Mirrored", e.toString());
 		}
 
 		return s;
@@ -147,14 +153,16 @@ class Article extends Object {
 		try {
 			bitmap = BitmapFactory.decodeStream(image_url.openStream());
 		} catch (IOException e) {
-			Log.e(TAG, e.toString());
+			if (MDebug.LOG)
+				Log.e(TAG, e.toString());
 		}
 
 		return bitmap;
 	}
 
 	public void trimContent(boolean online) {
-		Log.d(TAG, "Trimming article content");
+		if (MDebug.LOG)
+			Log.d(TAG, "Trimming article content");
 
 		int start, end;
 
@@ -187,7 +195,8 @@ class Article extends Object {
 				content = content.substring(0, start-1) + content.substring(end, content.length());
 				i++;
 			}
-			Log.d(TAG, "Replaced " + i + " occurences of <img...>");
+			if (MDebug.LOG)
+				Log.d(TAG, "Replaced " + i + " occurences of <img...>");
 		}
 		///////////////////////
 
@@ -204,14 +213,16 @@ class Article extends Object {
 
 	public String getContent(DisplayMetrics dm, boolean online) {
 		if (content != null && content.length() != 0) {
-			Log.d(TAG, "Article already has content, returning it");
+			if (MDebug.LOG)
+				Log.d(TAG, "Article already has content, returning it");
 
 			if (!online)
 				trimContent(online);
 
 			return content;
 		} else {
-			Log.d(TAG, "Article doesn't have content, downloading and returning it");
+			if (MDebug.LOG)
+				Log.d(TAG, "Article doesn't have content, downloading and returning it");
 			content = _downloadContent(dm);
 
 			trimContent(online);
@@ -225,11 +236,13 @@ class Article extends Object {
 			return image;
 
 		if (image != null) {
-			Log.d(TAG, "Article already has image, returning it");
+			if (MDebug.LOG)
+				Log.d(TAG, "Article already has image, returning it");
 
 			return image;
 		} else {
-			Log.d(TAG, "Article doesn't have image, downloading and returning it");
+			if (MDebug.LOG)
+				Log.d(TAG, "Article doesn't have image, downloading and returning it");
 
 			if (image_url != null)
 				image = _downloadImage();

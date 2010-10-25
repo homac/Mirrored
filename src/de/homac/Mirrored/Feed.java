@@ -32,7 +32,8 @@ class Feed extends RSSHandler {
 			return all_articles;
 
 		if (all_articles == null) {
-			Log.d(TAG, "No articles");
+			if (MDebug.LOG)
+				Log.d(TAG, "No articles");
 			return null;
 		}
 

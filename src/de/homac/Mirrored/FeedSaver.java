@@ -47,7 +47,8 @@ public class FeedSaver extends Object {
 
 		ArrayList<Article> existing_articles = _feed.getArticles();
 		if (existing_articles == null) {
-			Log.d(TAG, "No existing articles");
+			if (MDebug.LOG)
+				Log.d(TAG, "No existing articles");
 			return;
 		}
 
@@ -57,12 +58,14 @@ public class FeedSaver extends Object {
 	}
 
 	public void add(Article article) {
-		Log.d(TAG, "Adding article with title: "+ article.title);
+		if (MDebug.LOG)
+			Log.d(TAG, "Adding article with title: "+ article.title);
 		_articles.add(article);
 	}
 
 	public void remove(Article article) {
-		Log.d(TAG, "Removing article with title: " + article.title);
+		if (MDebug.LOG)
+			Log.d(TAG, "Removing article with title: " + article.title);
 
 		int index = _articles.indexOf(article);
 
@@ -75,7 +78,8 @@ public class FeedSaver extends Object {
 		String dirname = Environment.getExternalStorageDirectory().getAbsolutePath() + SAVE_DIR;
 		File directory = new File(dirname);
 
-		Log.d(TAG, "Saving");
+		if (MDebug.LOG)
+			Log.d(TAG, "Saving");
 
 		if (!directory.exists())
 			directory.mkdirs();
@@ -83,16 +87,19 @@ public class FeedSaver extends Object {
 		File f = new File(dirname + FILENAME);
 
 		if (storageReady()) {
-			Log.d(TAG, "SD card ready");
+			if (MDebug.LOG)
+				Log.d(TAG, "SD card ready");
 		} else {
-			Log.d(TAG, "SD card not ready");
+			if (MDebug.LOG)
+				Log.d(TAG, "SD card not ready");
 			return false;
 		}
 
 		try {
 			f.createNewFile();
 		} catch (IOException e) {
-			Log.e(TAG, e.toString());
+			if (MDebug.LOG)
+				Log.e(TAG, e.toString());
 			throw new IllegalStateException("Failed to create " + f.toString());
 		}
 
@@ -106,14 +113,16 @@ public class FeedSaver extends Object {
 			fos.write(_finishXML().getBytes());
 
 		} catch(IOException e) {
-			Log.e(TAG, e.toString());
+			if (MDebug.LOG)
+				Log.e(TAG, e.toString());
 		} finally {
 			if (fos != null) {
 				try {
 					fos.flush();
 					fos.close();
 				} catch (IOException e) {
-					Log.e(TAG, e.toString());
+					if (MDebug.LOG)
+						Log.e(TAG, e.toString());
 				}
 			}
 		}
@@ -130,7 +139,8 @@ public class FeedSaver extends Object {
 		String dirname = Environment.getExternalStorageDirectory().getAbsolutePath() + SAVE_DIR;
 		File f = new File(dirname+FILENAME);
 
-		Log.d(TAG, "Reading saved articles");
+		if (MDebug.LOG)
+			Log.d(TAG, "Reading saved articles");
 
 		if (!f.exists())
 			return null;

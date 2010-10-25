@@ -58,13 +58,15 @@ public class ArticleViewer extends Activity {
 
 		_online = app.online();
 
-		Log.d(TAG, "Setting content view");
+		if (MDebug.LOG)
+			Log.d(TAG, "Setting content view");
 		setContentView(R.layout.article_viewer);
 
 		_webview = (WebView)findViewById(R.id.webview);
 
 		Article article = app.getArticle();
-		Log.d(TAG, "Received article from application with title: " + article.title);
+		if (MDebug.LOG)
+			Log.d(TAG, "Received article from application with title: " + article.title);
 
 		setTitle(article.title);
 
@@ -72,12 +74,14 @@ public class ArticleViewer extends Activity {
 				@Override
 				public boolean shouldOverrideUrlLoading(WebView view, String url) {
 					if (_online) {
-						Log.d(TAG, "Loading URL " + url);
+						if (MDebug.LOG)
+							Log.d(TAG, "Loading URL " + url);
 
 						getWindowManager().getDefaultDisplay().getMetrics(_dm);
 
 						if (!url.toString().contains("article.do")) {
-							Log.d(TAG, "This URL is no article, opening in external browser...");
+							if (MDebug.LOG)
+								Log.d(TAG, "This URL is no article, opening in external browser...");
 							Uri uri = Uri.parse(url.toString() + "&emvAD=" + _dm.widthPixels
 									    + "x" + _dm.heightPixels);
 							Intent intent = new Intent(Intent.ACTION_VIEW, uri);
@@ -97,7 +101,8 @@ public class ArticleViewer extends Activity {
 							_articleHistory.add(content);
 						}
 					} else
-						Log.d(TAG, "Intercepting link click");
+						if (MDebug.LOG)
+							Log.d(TAG, "Intercepting link click");
 					return true;
 				}
 			});
@@ -110,7 +115,8 @@ public class ArticleViewer extends Activity {
 		if (app.screenOrientation == null) { //first time
 			app.screenOrientation = newOrientation;
 		} else if (app.screenOrientation != newOrientation && _online) {
-			Log.d(TAG, "Screen orientation changed, redownloading article content");
+			if (MDebug.LOG)
+				Log.d(TAG, "Screen orientation changed, redownloading article content");
 			article.resetContent();
 			article.getContent(_dm, _online);
 			app.screenOrientation = newOrientation;
@@ -126,10 +132,12 @@ public class ArticleViewer extends Activity {
 	 * articles in a list and always calling loadData...() */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		Log.d(TAG, "onKeyDown(), but canGoBack? " + _webview.canGoBack());
+		if (MDebug.LOG)
+			Log.d(TAG, "onKeyDown(), but canGoBack? " + _webview.canGoBack());
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
 			int size = _articleHistory.size();
-			Log.d(TAG, "_articleHistory has " + size + " elements");
+			if (MDebug.LOG)
+				Log.d(TAG, "_articleHistory has " + size + " elements");
 
 			if (size == 1) {
 				// remove original article, then go back to ArticlesList
@@ -140,7 +148,8 @@ public class ArticleViewer extends Activity {
 				_articleHistory.remove(size-1);
 				// get the previous history item
 				String content = _articleHistory.get(_articleHistory.size()-1);
-				Log.d(TAG, "Loading history item: " + content);
+				if (MDebug.LOG)
+					Log.d(TAG, "Loading history item: " + content);
 				_webview.loadDataWithBaseURL(BASE_URL, content,
 							     "text/html", "utf-8", null);
 			}
@@ -171,7 +180,8 @@ public class ArticleViewer extends Activity {
 
 		switch (item.getItemId()) {
 		case MENU_SAVE_ARTICLE:
-			Log.d(TAG, "MENU_SAVE_ARTICLE clicked");
+			if (MDebug.LOG)
+				Log.d(TAG, "MENU_SAVE_ARTICLE clicked");
 
 			DisplayMetrics dm = new DisplayMetrics();
 			getWindowManager().getDefaultDisplay().getMetrics(dm);
@@ -187,7 +197,8 @@ public class ArticleViewer extends Activity {
 			return true;
 
 		case MENU_EXTERNAL_BROWSER:
-			Log.d(TAG, "MENU_EXTERNAL_BROWSER clicked");
+			if (MDebug.LOG)
+				Log.d(TAG, "MENU_EXTERNAL_BROWSER clicked");
 
 			Uri uri = Uri.parse(app.getArticle().url.toString());
 			Intent intent = new Intent(Intent.ACTION_VIEW, uri);
@@ -196,7 +207,8 @@ public class ArticleViewer extends Activity {
 			return true;
 
 		case MENU_BACK_TO_ARTICLES_LIST:
-			Log.d(TAG, "MENU_BACK_TO_ARTICLES_LIST clicked");
+			if (MDebug.LOG)
+				Log.d(TAG, "MENU_BACK_TO_ARTICLES_LIST clicked");
 
 			this.finish();
 		}

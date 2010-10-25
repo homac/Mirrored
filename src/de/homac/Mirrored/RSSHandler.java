@@ -82,7 +82,8 @@ public class RSSHandler extends DefaultHandler {
 		try {
 			_targetFlag = TARGET_FEED;
 
-			Log.d(TAG, "Parsing feed " + url.toString());
+			if (MDebug.LOG)
+				Log.d(TAG, "Parsing feed " + url.toString());
 
 			SAXParserFactory spf = SAXParserFactory.newInstance();
 			SAXParser sp = spf.newSAXParser();
@@ -103,27 +104,32 @@ public class RSSHandler extends DefaultHandler {
 			}
 
 		} catch (UnknownHostException e) {
-			Log.e(TAG, "Feed currently not available: " + e.toString());
+			if (MDebug.LOG)
+				Log.e(TAG, "Feed currently not available: " + e.toString());
 			return;
 
 		} catch (FileNotFoundException e) {
-			Log.e(TAG, "Feed currently not available: " + e.toString());
+			if (MDebug.LOG)
+				Log.e(TAG, "Feed currently not available: " + e.toString());
 			return;
 		} catch (IOException e) {
-			Log.e(TAG, e.toString());
+			if (MDebug.LOG)
+				Log.e(TAG, e.toString());
 		} catch (SAXException e) {
 			Log.e(TAG, e.toString());
 		} catch (ParserConfigurationException e) {
-			Log.e(TAG, e.toString());
+			if (MDebug.LOG)
+				Log.e(TAG, e.toString());
 		}
 
 		// fetch and parse articles
 		try {
-
-			Log.d(TAG, "Feed title: "+feedTitle);
+			if (MDebug.LOG)
+				Log.d(TAG, "Feed title: "+feedTitle);
 			_targetFlag = TARGET_ARTICLES;
 
-			Log.d(TAG, "Parsing articles");
+			if (MDebug.LOG)
+				Log.d(TAG, "Parsing articles");
 
 			SAXParserFactory spf = SAXParserFactory.newInstance();
 			SAXParser sp = spf.newSAXParser();
@@ -139,14 +145,18 @@ public class RSSHandler extends DefaultHandler {
 			}
 			
 		} catch (IOException e) {
-			Log.e(TAG, e.toString());
+			if (MDebug.LOG)
+				Log.e(TAG, e.toString());
 		} catch (SAXException e) {
-			Log.e(TAG, e.toString());
+			if (MDebug.LOG)
+				Log.e(TAG, e.toString());
 		} catch (ParserConfigurationException e) {
-			Log.e(TAG, e.toString());
+			if (MDebug.LOG)
+				Log.e(TAG, e.toString());
 		}
 
-		Log.d(TAG, "Found " + _articles.size() + " articles");
+		if (MDebug.LOG)
+			Log.d(TAG, "Found " + _articles.size() + " articles");
 	}
 
 	public void startElement(String uri, String name, String qName, Attributes atts) {
@@ -169,7 +179,8 @@ public class RSSHandler extends DefaultHandler {
 						_currentArticle.image_url = new URL(v);
 
 				} catch (MalformedURLException e) {
-					Log.e(TAG, e.toString());
+					if (MDebug.LOG)
+						Log.e(TAG, e.toString());
 				}
 			}
 		} else if (name.trim().equals("content"))
@@ -201,7 +212,8 @@ public class RSSHandler extends DefaultHandler {
 		// Check if looking for feed, and if feed is complete // not needed csurrently
 		if (_targetFlag == TARGET_FEED && _feedUrl != null && feedTitle.length() > 0) {
 
-			Log.d(TAG, "Feed parsing finished");
+			if (MDebug.LOG)
+				Log.d(TAG, "Feed parsing finished");
 			throw new SAXException();
 		}
 
@@ -213,7 +225,8 @@ public class RSSHandler extends DefaultHandler {
 				_currentArticle.url = new URL(_article_url_string);
 
 			} catch (MalformedURLException e) {
-				Log.e(TAG, e.toString());
+				if (MDebug.LOG)
+					Log.e(TAG, e.toString());
 			}
 
 			Article article = new Article(_currentArticle);
@@ -221,7 +234,8 @@ public class RSSHandler extends DefaultHandler {
 				article.category = category();
 
 			_articles.add(article);
-			Log.d(TAG, "SAX, added article with title: " + _currentArticle.title);
+			if (MDebug.LOG)
+				Log.d(TAG, "SAX, added article with title: " + _currentArticle.title);
 
 			// reset current Article
 			_currentArticle.title = "";
