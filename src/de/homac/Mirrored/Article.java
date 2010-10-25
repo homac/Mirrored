@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2010 Holger Macht <holger@homac.de>
  *
- * This file is released under the GPLv2.
+ * This file is released under the GPLv3.
  *
  */
 
