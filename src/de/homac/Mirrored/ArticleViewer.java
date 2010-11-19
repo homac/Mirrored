@@ -68,7 +68,12 @@ public class ArticleViewer extends Activity {
 		if (MDebug.LOG)
 			Log.d(TAG, "Received article from application with title: " + article.title);
 
-		setTitle(article.title);
+		/* Add some debugging */
+		if (article.title == null)
+		    Log.d(TAG, "Article title is null");
+
+		if (article.title != null)
+		    setTitle(article.title);
 
 		_webview.setWebViewClient(new WebViewClient() {
 				@Override
