@@ -5,6 +5,8 @@
  *
  * Copyright (C) 2010 Holger Macht <holger@homac.de>
  *
+ * Support for multiple page articles by Christoph Robbert <crobbert@mail.upb.de>
+ *
  * This file is released under the GPLv3.
  *
  */
@@ -114,14 +116,14 @@ class Article extends Object {
 		return guid.substring(0, guid.indexOf('_'));
 	}
 
-	private String _downloadContent(DisplayMetrics dm) {
+	private String _downloadContent(DisplayMetrics dm, boolean online, int page) {
 		URL url = null;
 		InputStream is = null;
 		String s = "";
 
 		try {
 			url = new URL(ARTICLE_URL+ dm.widthPixels + "x" + dm.heightPixels +
-				      "&id=" + _id());
+				      "&id=" + _id() + "&p=" + page);
 			if (MDebug.LOG)
 				Log.d(TAG, "Downloading " + url.toString());
 
@@ -130,8 +132,17 @@ class Article extends Object {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(is), 8*1024);
 			StringBuilder sb = new StringBuilder();
 			String line = null;
+			boolean hasNextPage = false;
 			while ((line = reader.readLine()) != null) {
+				if (line.contains("id=" + _id() + "&#x26;p=" + (page + 1)))
+					hasNextPage = true;
 				sb.append(line + "\n");
+			}
+
+			if (hasNextPage) {
+				if (MDebug.LOG)
+					Log.d(TAG, "Downloading next page");
+				sb.append(this.getContent(dm, online, page+1));
 			}
 			is.close();
 			s = sb.toString();
@@ -184,7 +195,17 @@ class Article extends Object {
 			end = content.indexOf("</div></div></div></body></html>");
 			content = content.substring(0, start-1) + content.substring(end, content.length());
 		}
-
+		// Multiple page articles, remove the links to next/prev page
+		start = content.indexOf("<strong>1</strong>");
+		if (start != -1) {
+			end = content.indexOf("</div></div></div></body></html>");
+			content = content.substring(0, start-1) + content.substring(end, content.length());
+		}
+		start = content.indexOf("ZUR&#xdc;CK</span>");
+		if (start != -1) {
+			end = content.indexOf("</div></div></div></body></html>");
+			content = content.substring(0, start-1) + content.substring(end, content.length());
+		}
 
 		//////////////
 		// only do the following when not connected to the internet
@@ -211,7 +232,7 @@ class Article extends Object {
 		content = content.replaceAll("border-color: #ececec;border-style: solid;border-width: ..px;", "");
 	}
 
-	public String getContent(DisplayMetrics dm, boolean online) {
+	public String getContent(DisplayMetrics dm, boolean online, int page) {
 		if (content != null && content.length() != 0) {
 			if (MDebug.LOG)
 				Log.d(TAG, "Article already has content, returning it");
@@ -223,12 +244,16 @@ class Article extends Object {
 		} else {
 			if (MDebug.LOG)
 				Log.d(TAG, "Article doesn't have content, downloading and returning it");
-			content = _downloadContent(dm);
+			content = _downloadContent(dm, online, page);
 
 			trimContent(online);
 
 			return content;
 		}
+	}
+
+	public String getContent(DisplayMetrics dm, boolean online) {
+		return getContent(dm, online, 0);
 	}
 
 	public Bitmap getImage(boolean online) {
