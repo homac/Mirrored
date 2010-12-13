@@ -55,7 +55,7 @@ public class RSSHandler extends DefaultHandler {
 	protected String TAG;
 
 	// Feed and Article objects to use for temporary storage
-	private Article _currentArticle = new Article();
+	private Article _currentArticle;
 
 	// The possible values for targetFlag
 	private static final int TARGET_FEED = 0;
@@ -75,6 +75,8 @@ public class RSSHandler extends DefaultHandler {
 
 		app = m;
 		TAG = app.APP_NAME + ", " + "RSSHandler";
+
+		_currentArticle = new Article(app);
 
 		_feedUrl = url;
 

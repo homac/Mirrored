@@ -34,6 +34,7 @@ import android.content.ContextWrapper;
 import android.app.Application;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.app.Activity;
 
 class Article extends Object {
 
@@ -46,14 +47,18 @@ class Article extends Object {
 	public String category = "";
 	public String guid = "";
 
+	public Mirrored app;
+
 	static private final String ARTICLE_URL = "http://m.spiegel.de/article.do?emvAD=";
 	static private final String TAG = "Mirrored," + "Article";
 
-	public Article() {
+	public Article(Mirrored app) {
+		this.app = app;
 	}
 
-	public Article(String urlString) {
+	public Article(Mirrored app, String urlString) {
 		try {
+			this.app = app;
 			this.url = new URL(urlString);
 
 		} catch (MalformedURLException e) {
@@ -72,6 +77,7 @@ class Article extends Object {
 		category = a.category;
 		image = a.image;
 		guid = a.guid;
+		app = a.app;
 	}
 
 	public String dateString() {
@@ -230,6 +236,25 @@ class Article extends Object {
 		content = content.replaceAll("separator mode1 ", "");
 		//		content = content.replaceAll("global.css", "sss");
 		content = content.replaceAll("border-color: #ececec;border-style: solid;border-width: ..px;", "");
+
+		/* font substitutions
+		 *
+		 * 6 is default and should result in a font size of 19px for normal text and 22px
+		 * for headings and such. So:
+		 * 0.6*x=1 ==> x=1.66 ==> 19*0.6*1.67=19
+		 */
+		double prefFontSize = app.getIntPreference("PrefFontSize", 6)/10.0;
+		int newsize = (int)(19.0 * prefFontSize * 1.67);
+		int newsize_large = (int)((22.0/19.0) * (double)newsize);
+		int newsize_large_large = (int)((26.0/19.0) * (double)newsize);
+		int newsize_misc = (int)((15.0/19.0) * (double)newsize);
+		if (MDebug.LOG)
+		    Log.d(TAG, "Font sizes for this article: " + newsize + ", " + newsize_large + ", " + newsize_large_large + ", " + newsize_misc);
+
+		content = content.replaceAll("font-size:19px", "font-size:"+newsize+"px");
+		content = content.replaceAll("font-size:22px", "font-size:"+newsize_large+"px");
+		content = content.replaceAll("font-size:26px", "font-size:"+newsize_large_large+"px");
+		content = content.replaceAll("font-size:15px", "font-size:"+newsize_misc+"px");
 	}
 
 	public String getContent(DisplayMetrics dm, boolean online, int page) {

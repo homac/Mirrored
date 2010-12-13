@@ -95,7 +95,7 @@ public class ArticleViewer extends Activity {
 							return true;
 						}
 
-						Article a = new Article(url);
+						Article a = new Article(app, url);
 
 						String content = a.getContent(_dm, _online);
 
