@@ -38,8 +38,7 @@
        android:title="@string/preference_font_size_title"
        android:summary="@string/preference_font_size_summary"
        android:key="PrefFontSize"
-       android:dialogMessage="Font Size"
-       android:text=" size"
+       android:text=""
        android:defaultValue="6"
        android:max="10" />
     <de.homac.Mirrored.DialogExPreference
