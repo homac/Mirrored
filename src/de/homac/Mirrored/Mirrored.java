@@ -162,6 +162,13 @@ public class Mirrored extends Application {
 		return prefs.getString(pref, def);
 	}
 
+	public int getIntPreference(String pref, int def) {
+		SharedPreferences prefs = PreferenceManager
+			.getDefaultSharedPreferences(getBaseContext());
+
+		return prefs.getInt(pref, def);
+	}
+
 	public void showDialog(Activity activity, String text) {
 		AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
 		alertDialog.setMessage(text);
