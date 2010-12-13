@@ -239,7 +239,7 @@ class Article extends Object {
 
 		/* font substitutions */
 		int prefFontSize = app.getIntPreference("PrefFontSize", 6);
-		int newsize = 19.0 + (prefFontSize-6);
+		int newsize = 19 + (prefFontSize-6);
 		int newsize_large = (int)((22.0/19.0) * (double)newsize);
 		int newsize_large_large = (int)((26.0/19.0) * (double)newsize);
 		int newsize_misc = (int)((15.0/19.0) * (double)newsize);
