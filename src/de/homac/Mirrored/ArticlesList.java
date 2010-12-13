@@ -18,6 +18,7 @@ import java.util.List;
 import java.io.InputStream;
 import java.io.IOException;
 import java.lang.InterruptedException;
+import java.util.Iterator;
 
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -315,6 +316,12 @@ public class ArticlesList extends ListActivity implements Runnable
 		case MENU_PREFERENCES:
 			if (MDebug.LOG)
 				Log.d(TAG, "MENU_PREFERENCES clicked");
+
+			Iterator _article_iter = null;
+			_article_iter = _articles.iterator();
+			for (Article article : _articles) {
+				article.resetContent();
+			}
 
 			intent = new Intent(this, Preferences.class);
 			startActivity(intent);
