@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	  package="de.homac.Mirrored"
 	  android:versionCode="3"
-	  android:versionName="0.1.2">
+	  android:versionName="0.1.3">
   <uses-sdk android:minSdkVersion="3"
 	    android:targetSdkVersion="4" />
   <uses-permission android:name="android.permission.INTERNET"/>
