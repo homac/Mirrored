@@ -1,7 +1,5 @@
 ;-*-org-*-
 
-- release to market
-- set android:debuggable="false"
 - dark theme for ArticleViewer
 - don't save the same article twice
 - mark articles as read when they've been read
