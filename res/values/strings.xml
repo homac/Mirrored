@@ -64,4 +64,7 @@
     license text. This software comes with absolutely no warranty, use
     at your own risk.
   </string>
+  <string name="preference_font_size_title">Font Size</string>
+  <string name="preference_font_size_summary">The font size for articles
+  as a relative value from 0 to 10</string>
 </resources>

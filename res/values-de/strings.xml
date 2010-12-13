@@ -66,4 +66,7 @@
     Garantie oder Haftung für etwaige Schäden. Verwendung auf eigene
     Gefahr.
     </string>
+  <string name="preference_font_size_title">Schriftgröße</string>
+  <string name="preference_font_size_summary">Die Schriftgröße für
+  Artikel als ein relativer Wert von 0 bis 10</string>
 </resources>
