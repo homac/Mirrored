@@ -129,7 +129,7 @@ class Article extends Object {
 
 		try {
 			url = new URL(ARTICLE_URL+ dm.widthPixels + "x" + dm.heightPixels +
-				      "&id=" + _id() + "&p=" + page);
+				      "&id=" + _id() + "&p=" + page +"&emvcc=0");
 			if (MDebug.LOG)
 				Log.d(TAG, "Downloading " + url.toString());
 
