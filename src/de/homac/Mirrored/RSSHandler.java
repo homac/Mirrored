@@ -289,7 +289,6 @@ public class RSSHandler extends DefaultHandler {
 		String[] tSplit = _feedUrl.toString().split("/");
 		if (tSplit.length != 5)
 			return app.BASE_CATEGORY;
-		Log.i(TAG, "category = " + tSplit[3]);
 		return tSplit[3];
 	}
 }
