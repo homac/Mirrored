@@ -130,7 +130,7 @@ public class Mirrored extends Application {
 			String line;
 
 			try {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 8*1024);
+				BufferedReader reader = new BufferedReader(new InputStreamReader(is, "ISO-8859-1"), 8*1024);
 				while ((line = reader.readLine()) != null) {
 					sb.append(line).append("\n");
 				}

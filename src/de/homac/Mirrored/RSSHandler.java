@@ -273,7 +273,7 @@ public class RSSHandler extends DefaultHandler {
 					_currentArticle.content += chars;
 				}
 				if (_inCategory) {
-					_currentArticle.category += chars;
+					_currentArticle.category += chars.toLowerCase();
 				}
 				if (_inGuid) {
 					_currentArticle.guid += chars;
@@ -286,12 +286,10 @@ public class RSSHandler extends DefaultHandler {
 	}
 
 	public String category() {
-		String link = _feedUrl.toString();
-		int pos_of_equal = link.lastIndexOf('=');
-
-		if (pos_of_equal == -1)
+		String[] tSplit = _feedUrl.toString().split("/");
+		if (tSplit.length != 5)
 			return app.BASE_CATEGORY;
-
-		return link.substring(pos_of_equal+1, link.length());
+		Log.i(TAG, "category = " + tSplit[3]);
+		return tSplit[3];
 	}
 }

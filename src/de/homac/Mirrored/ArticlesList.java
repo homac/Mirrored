@@ -14,16 +14,11 @@ package de.homac.Mirrored;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
-import java.io.InputStream;
-import java.io.IOException;
-import java.lang.InterruptedException;
 import java.util.Iterator;
 
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.app.ListActivity;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.view.ViewGroup;
 import android.view.Menu;
@@ -42,7 +37,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.content.res.Configuration;
 import android.widget.Toast;
 
@@ -58,8 +52,10 @@ public class ArticlesList extends ListActivity implements Runnable
 	static final int MENU_ONLINE_MODE	= 5;
 	static final int MENU_REFRESH		= 6;
 
-	static final String BASE_FEED = "http://m.spiegel.de/rss.do";
-	static final String BASE_CATEGORY_FEED = BASE_FEED + "?id=";
+	//static final String BASE_FEED = "http://www.spiegel.de/schlagzeilen/index.rss";
+	static final String FEED_PREFIX = "http://www.spiegel.de/";
+	static final String FEED_SUFFIX = "/index.rss";
+	static final String BASE_CATEGORY_FEED = FEED_PREFIX + Mirrored.BASE_CATEGORY + FEED_SUFFIX;
 
 	private ArrayList<Article> _articles = null;
 	private ArrayList<Bitmap> _article_images = new ArrayList<Bitmap>();
@@ -103,11 +99,11 @@ public class ArticlesList extends ListActivity implements Runnable
 					Log.d(TAG, "hasExtra(app.EXTRA_CATEGORY)");
 
 				category = getIntent().getExtras().getString(app.EXTRA_CATEGORY);
-				
+
 				if (category.equals(app.BASE_CATEGORY))
-					_url = new URL(BASE_FEED);
+					_url = new URL(BASE_CATEGORY_FEED);
 				else
-					_url = new URL(BASE_CATEGORY_FEED+category);
+					_url = new URL(FEED_PREFIX + category + FEED_SUFFIX);
 			} else {
 				if (MDebug.LOG)
 					Log.d(TAG, "!hasExtra(app.EXTRA_CATEGORY)");
@@ -122,8 +118,8 @@ public class ArticlesList extends ListActivity implements Runnable
 					category = startWithCategory;
 				} else {
 					if (MDebug.LOG)
-						Log.d(TAG, "No category set, using BASE_FEED: " + BASE_FEED);
-					_url = new URL(BASE_FEED);
+						Log.d(TAG, "No category set, using BASE_FEED: " + BASE_CATEGORY_FEED);
+					_url = new URL(BASE_CATEGORY_FEED);
 				}
 			}
 			String title = category.substring(0, 1).toUpperCase() + category.substring(1);
@@ -176,7 +172,7 @@ public class ArticlesList extends ListActivity implements Runnable
 				// make sure we actually have content
 				_saver.add(article);
 			}
-			
+
 			_saver.save(_displayMetrics());
 			_pdialog.dismiss();
 
@@ -249,7 +245,7 @@ public class ArticlesList extends ListActivity implements Runnable
 					Log.d(TAG, "no articles");
 				return;
 			}
-			
+
 			for (Article article : _articles) {
 				_article_images.add(article.getImage(
 						     app.getBooleanPreference("PrefDownloadImages", true)
@@ -448,7 +444,7 @@ public class ArticlesList extends ListActivity implements Runnable
 			if (!_saver.save(_displayMetrics()))
 				app.showDialog(this, getString(R.string.error_saving));
 			else
-				Toast.makeText(getApplicationContext(), R.string.article_deleted, 
+				Toast.makeText(getApplicationContext(), R.string.article_deleted,
 					       Toast.LENGTH_LONG).show();
 
 			return true;
@@ -465,7 +461,7 @@ public class ArticlesList extends ListActivity implements Runnable
 			if (!_saver.save(_displayMetrics()))
 				app.showDialog(this, getString(R.string.error_saving));
 
-			Toast.makeText(getApplicationContext(), R.string.article_saved, 
+			Toast.makeText(getApplicationContext(), R.string.article_saved,
 				       Toast.LENGTH_LONG).show();
 
 			// make sure the articles is redownloaded
