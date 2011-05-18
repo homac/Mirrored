@@ -15,9 +15,7 @@ package de.homac.Mirrored;
 
 import java.net.URL;
 import java.net.MalformedURLException;
-import java.io.DataInputStream;
 import java.io.InputStream;
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -29,12 +27,8 @@ import java.util.Locale;
 
 import android.util.Log;
 import android.util.DisplayMetrics;
-import android.content.Context;
-import android.content.ContextWrapper;
-import android.app.Application;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.app.Activity;
 
 class Article extends Object {
 
@@ -49,8 +43,10 @@ class Article extends Object {
 
 	public Mirrored app;
 
-	static private final String ARTICLE_URL = "http://m.spiegel.de/article.do?emvAD=";
+	static private final String ARTICLE_URL = "http://m.spiegel.de/";
 	static private final String TAG = "Mirrored," + "Article";
+	private static final String TEASER = "<p id=\"spIntroTeaser\">";
+	private static final String CONTENT = "<div class=\"spArticleContent\"";
 
 	public Article(Mirrored app) {
 		this.app = app;
@@ -102,57 +98,42 @@ class Article extends Object {
 	}
 
 	private String _id() {
-		if (guid.length() == 0 || guid == null) {
-			String link = url.toString();
-			int start_of_id = link.lastIndexOf("id=");
-
-			if (start_of_id == -1) {
-				if (MDebug.LOG)
-					Log.e(TAG, "Couldn't calculate article id");
-				return null;
-			}
-
-			int end_of_id = link.lastIndexOf("&");
-			if (end_of_id == -1)
-				end_of_id = link.length();
-
-			return link.substring(start_of_id+3, end_of_id);
+		if (guid == null || guid.length() == 0) {
+			return null;
 		}
-
-		return guid.substring(0, guid.indexOf('_'));
+		String split[] = url.toString().split(",");
+		if (split.length != 4) {
+			if (MDebug.LOG)
+				Log.e(TAG, "Couldn't calculate article id");
+			return null;
+		}
+		return split[2];
 	}
 
 	private String _downloadContent(DisplayMetrics dm, boolean online, int page) {
-		URL url = null;
-		InputStream is = null;
-		String s = "";
-
+		StringBuilder sb = new StringBuilder();
 		try {
-			url = new URL(ARTICLE_URL+ dm.widthPixels + "x" + dm.heightPixels +
-				      "&id=" + _id() + "&p=" + page +"&emvcc=0");
+
+			URL url = new URL(ARTICLE_URL + _categories() + "/a-" + _id() + (page > 1 ? "-" + page : "") + ".html");
 			if (MDebug.LOG)
 				Log.d(TAG, "Downloading " + url.toString());
 
-			is = url.openStream();
+			InputStream is = url.openStream();
 
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is), 8*1024);
-			StringBuilder sb = new StringBuilder();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(is, "ISO-8859-1"), 8 * 1024);
+
+			sb.append(getArticleContent(reader, page > 1));
 			String line = null;
-			boolean hasNextPage = false;
+			boolean couldHasNext = false;
 			while ((line = reader.readLine()) != null) {
-				if (line.contains("id=" + _id() + "&#x26;p=" + (page + 1)))
-					hasNextPage = true;
-				sb.append(line + "\n");
-			}
-
-			if (hasNextPage) {
-				if (MDebug.LOG)
+				if (line.contains("<li class=\"spMultiPagerLink\">")) {
+					couldHasNext = true;
+				} else if (couldHasNext && line.contains(">WEITER</a>")) {
 					Log.d(TAG, "Downloading next page");
-				sb.append(this.getContent(dm, online, page+1));
+					sb.append(this.getContent(dm, online, page + 1));
+				}
 			}
 			is.close();
-			s = sb.toString();
-
 		} catch (MalformedURLException e) {
 			if (MDebug.LOG)
 				Log.e("Mirrored", e.toString());
@@ -160,8 +141,25 @@ class Article extends Object {
 			if (MDebug.LOG)
 				Log.e("Mirrored", e.toString());
 		}
+		if (page == 1) {
+			sb.append("</body></html>");
+		}
+		//if (MDebug.LOG)
+		Log.e("Mirrored", sb.toString());
+		return sb.toString();
+	}
 
-		return s;
+	private String _categories() {
+		if (guid == null || guid.length() == 0) {
+			return null;
+		}
+		String split[] = url.toString().split("/");
+		if (split.length != 6) {
+			if (MDebug.LOG)
+				Log.e(TAG, "Couldn't calculate category");
+			return null;
+		}
+		return split[3] + "/" + split[4];
 	}
 
 	private Bitmap _downloadImage() {
@@ -175,6 +173,56 @@ class Article extends Object {
 		}
 
 		return bitmap;
+	}
+
+	private String getArticleContent(BufferedReader reader, boolean skipTeaser) throws IOException {
+		StringBuilder text = new StringBuilder();
+		String line = null;
+		while ((line = reader.readLine()) != null && !(line.contains(CONTENT))) {
+			line = line.trim();
+			if (!skipTeaser) {
+				if (line.contains("<head>") || line.startsWith("<link") || line.contains("<meta")) {
+					text.append(line);
+				}
+			}
+			continue;
+		}
+		text.append(line.substring(line.indexOf(CONTENT)));
+
+		while (((line = reader.readLine()) != null) && !(line.contains(TEASER))) {
+			if (!skipTeaser) {
+				text.append(line);
+			}
+			continue;
+		}
+		text.append(line.substring(line.indexOf(TEASER)));
+
+		int diffCount = 1;
+		while (((line = reader.readLine()) != null) && diffCount > 0) {
+			diffCount -= countTag(line, "</div>");
+			if (diffCount == 1) {
+				//skip inner diffs -> fotostrecke, etc
+				text.append(line);
+			}
+			if (diffCount > 0) {
+				diffCount += countTag(line, "<div");
+			}
+		}
+		if (line.contains("</div>")) {
+			text.append(line.substring(0, line.lastIndexOf("</div>")));
+		}
+		text.append("</div>");
+		return text.toString();
+	}
+
+	private int countTag(String line, String tag) {
+		int tagCount = 0;
+		String tLine = line.trim();
+		while (tLine.length() > 0 && tLine.contains(tag)) {
+			tagCount++;
+			tLine = tLine.substring(tLine.indexOf(tag) + tag.length());
+		}
+		return tagCount;
 	}
 
 	public void trimContent(boolean online) {
@@ -273,7 +321,7 @@ class Article extends Object {
 	}
 
 	public String getContent(DisplayMetrics dm, boolean online) {
-		return getContent(dm, online, 0);
+		return getContent(dm, online, 1);
 	}
 
 	public Bitmap getImage(boolean online) {
