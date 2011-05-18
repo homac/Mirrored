@@ -14,6 +14,7 @@ package de.homac.Mirrored;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import android.app.ListActivity;
@@ -59,6 +60,7 @@ public class CategoriesList extends ListActivity {
 		_categories = getResources().getStringArray(R.array.categories);
 
 		List<String> items = new ArrayList<String>();
+        Collections.sort(items);
 
 		for (String category : _categories)
 			items.add(category);

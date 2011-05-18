@@ -31,18 +31,16 @@ public class ArticleContentDownloader extends Object implements Runnable {
 	private final boolean _downloadImages;
 	private final boolean _downloadContent;
 	private final boolean _internetReady;
-	private final DisplayMetrics _dm;
 
-	public ArticleContentDownloader(Mirrored app, DisplayMetrics dm, ArrayList<Article> articles,
+    public ArticleContentDownloader(Mirrored app, DisplayMetrics dm, ArrayList<Article> articles,
 					boolean downloadContent, boolean downloadImages, boolean internetReady) {
 
 		_articles = articles;
 		_downloadImages = downloadImages;
 		_downloadContent = downloadContent;
 		_internetReady = internetReady;
-		_dm = dm;
 
-		this.app = app;
+        this.app = app;
 		TAG = app.APP_NAME + ", " + "ArticleContentDownloader";
 	}
  
@@ -74,7 +72,7 @@ public class ArticleContentDownloader extends Object implements Runnable {
 			Article a = (Article)_article_iter.next();
 			_lock.unlock();
 			if (_downloadContent)
-				a.getContent(_dm, _internetReady);
+				a.getContent( _internetReady);
 			if (_downloadImages)
 				a.getImage(_internetReady);
 		}

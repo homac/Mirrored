@@ -10,6 +10,7 @@
   <string name="context_menu_save">Speichern</string>
   <string name="progress_dialog_load">Artikel werden geladen. Bitte warten...</string>
   <string name="progress_dialog_save_all">Artikel werden gespeichert. Bitte warten...</string>
+   <string name="error_load_article">Artikel konnte nicht geladen werden</string>
   <string name="caption_offline">Offline</string>
   <string name="no_articles">Keine Artikel verfügbar</string>
   <string name="switch_to_offline_mode">Offline-Modus gestartet</string>

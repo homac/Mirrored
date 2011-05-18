@@ -16,6 +16,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import android.text.Html;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.app.ListActivity;
@@ -529,7 +530,7 @@ public class ArticlesList extends ListActivity implements Runnable
 
 			headline.setText(article.title);
 			image.setImageBitmap(b);
-			description.setText(article.description);
+			description.setText(Html.fromHtml(article.description));
 			date.setText(article.dateString());
 
 			return row;

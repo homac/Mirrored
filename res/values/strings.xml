@@ -11,6 +11,7 @@
   <string name="progress_dialog_load">Loading articles. Please wait...</string>
   <string name="progress_dialog_save_all">Saving articles. Please wait...</string>
   <string name="caption_offline">Offline</string>
+    <string name="error_load_article">Could not load article</string>
   <string name="no_articles">No articles available</string>
   <string name="switch_to_offline_mode">Switched to offline mode</string>
   <string name="please_check_internet">Please check your internet

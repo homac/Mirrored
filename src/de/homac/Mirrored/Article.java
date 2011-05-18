@@ -13,22 +13,21 @@
 
 package de.homac.Mirrored;
 
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.io.InputStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.text.ParsePosition;
-import java.util.Date;
-import java.util.TimeZone;
-import java.util.Locale;
-
-import android.util.Log;
-import android.util.DisplayMetrics;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 class Article extends Object {
 
@@ -110,11 +109,11 @@ class Article extends Object {
 		return split[2];
 	}
 
-	private String _downloadContent(DisplayMetrics dm, boolean online, int page) {
+	private String _downloadContent(boolean online, int page) {
 		StringBuilder sb = new StringBuilder();
 		try {
 
-			URL url = new URL(ARTICLE_URL + _categories() + "/a-" + _id() + (page > 1 ? "-" + page : "") + ".html");
+			URL url = new URL(getArticleUrl(page));
 			if (MDebug.LOG)
 				Log.d(TAG, "Downloading " + url.toString());
 
@@ -123,14 +122,14 @@ class Article extends Object {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(is, "ISO-8859-1"), 8 * 1024);
 
 			sb.append(getArticleContent(reader, page > 1));
-			String line = null;
+			String line;
 			boolean couldHasNext = false;
 			while ((line = reader.readLine()) != null) {
 				if (line.contains("<li class=\"spMultiPagerLink\">")) {
 					couldHasNext = true;
 				} else if (couldHasNext && line.contains(">WEITER</a>")) {
 					Log.d(TAG, "Downloading next page");
-					sb.append(this.getContent(dm, online, page + 1));
+					sb.append(this.getContent(online, page + 1));
 				}
 			}
 			is.close();
@@ -144,8 +143,12 @@ class Article extends Object {
 		if (page == 1) {
 			sb.append("</body></html>");
 		}
-		//if (MDebug.LOG)
+
 		return sb.toString();
+	}
+
+	public String getArticleUrl(int page) {
+		return ARTICLE_URL + _categories() + "/a-" + _id() + (page > 1 ? "-" + page : "") + ".html";
 	}
 
 	private String _categories() {
@@ -153,12 +156,14 @@ class Article extends Object {
 			return null;
 		}
 		String split[] = url.toString().split("/");
-		if (split.length != 6) {
-			if (MDebug.LOG)
-				Log.e(TAG, "Couldn't calculate category");
-			return null;
+		if (split.length == 6) {
+			return split[3] + "/" + split[4];
+		} else if (split.length == 5) {
+			return split[3];
 		}
-		return split[3] + "/" + split[4];
+		if (MDebug.LOG)
+			Log.e(TAG, "Couldn't calculate category");
+		return "";
 	}
 
 	private Bitmap _downloadImage() {
@@ -299,28 +304,23 @@ class Article extends Object {
 		content = content.replaceAll("font-size:15px", "font-size:"+newsize_misc+"px");
 	}
 
-	public String getContent(DisplayMetrics dm, boolean online, int page) {
+	public String getContent(boolean online, int page) {
 		if (content != null && content.length() != 0) {
 			if (MDebug.LOG)
 				Log.d(TAG, "Article already has content, returning it");
-
-			if (!online)
-				trimContent(online);
-
 			return content;
 		} else {
 			if (MDebug.LOG)
 				Log.d(TAG, "Article doesn't have content, downloading and returning it");
-			content = _downloadContent(dm, online, page);
-
-			trimContent(online);
+			content = _downloadContent(online, page);
+			//            trimContent(online);
 
 			return content;
 		}
 	}
 
-	public String getContent(DisplayMetrics dm, boolean online) {
-		return getContent(dm, online, 1);
+	public String getContent(boolean online) {
+		return getContent(online, 1);
 	}
 
 	public Bitmap getImage(boolean online) {

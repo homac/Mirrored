@@ -174,7 +174,7 @@ public class FeedSaver extends Object {
 
 		o += "  <category>"+article.category+"</category>\n";
 
-		o += "  <content><![CDATA["+article.getContent(dm, false)+"]]></content>\n";
+		o += "  <content><![CDATA["+article.getContent(false)+"]]></content>\n";
 		o += " </item>\n";
 
 		return o;
