@@ -235,7 +235,10 @@ public class RSSHandler extends DefaultHandler {
 			if (_currentArticle.category == null || _currentArticle.category.length() == 0)
 				article.category = category();
 
-			_articles.add(article);
+			// ugly hack: We currently don't support "Fotostrecke:", so don't add article if it is one
+			if (!article.title.startsWith("Fotostrecke:"))
+				_articles.add(article);
+
 			if (MDebug.LOG)
 				Log.d(TAG, "SAX, added article with title: " + _currentArticle.title);
 
