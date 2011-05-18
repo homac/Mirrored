@@ -145,7 +145,6 @@ class Article extends Object {
 			sb.append("</body></html>");
 		}
 		//if (MDebug.LOG)
-		Log.e("Mirrored", sb.toString());
 		return sb.toString();
 	}
 
