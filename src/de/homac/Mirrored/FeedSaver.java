@@ -11,21 +11,15 @@
 
 package de.homac.Mirrored;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.FileInputStream;
-import org.xml.sax.InputSource;
-import java.util.ArrayList;
-
-import android.util.Log;
-import android.content.*;
-import android.content.Context;
-import android.os.Bundle;
 import android.os.Environment;
-import android.app.Activity;
 import android.util.DisplayMetrics;
+import android.util.Log;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class FeedSaver extends Object {
 
@@ -34,7 +28,6 @@ public class FeedSaver extends Object {
 	private Feed _feed;
 
 	static private String TAG;
-	private Mirrored app;
 
 	static private final String FILENAME = "articles.xml";
 
@@ -42,7 +35,6 @@ public class FeedSaver extends Object {
 
 	public FeedSaver(Mirrored app, Feed feed, DisplayMetrics dm) {
 		this._feed = feed;
-		this.app = app;
 		TAG = app.APP_NAME + ", " + "FeedSaver";
 
 		ArrayList<Article> existing_articles = _feed.getArticles();
@@ -51,7 +43,6 @@ public class FeedSaver extends Object {
 				Log.d(TAG, "No existing articles");
 			return;
 		}
-
 		// add already existing articles
 		for (Article article : existing_articles)
 			_articles.add(article);
@@ -59,7 +50,7 @@ public class FeedSaver extends Object {
 
 	public void add(Article article) {
 		if (MDebug.LOG)
-			Log.d(TAG, "Adding article with title: "+ article.title);
+			Log.d(TAG, "Adding article with title: " + article.title);
 		_articles.add(article);
 	}
 
@@ -75,7 +66,8 @@ public class FeedSaver extends Object {
 	public boolean save(DisplayMetrics dm) {
 		FileOutputStream fos = null;
 		BufferedWriter out;
-		String dirname = Environment.getExternalStorageDirectory().getAbsolutePath() + SAVE_DIR;
+		String dirname = Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + SAVE_DIR;
 		File directory = new File(dirname);
 
 		if (MDebug.LOG)
@@ -112,7 +104,7 @@ public class FeedSaver extends Object {
 					fos.write(_articleXML(article, dm).getBytes());
 			fos.write(_finishXML().getBytes());
 
-		} catch(IOException e) {
+		} catch (IOException e) {
 			if (MDebug.LOG)
 				Log.e(TAG, e.toString());
 		} finally {
@@ -135,9 +127,10 @@ public class FeedSaver extends Object {
 	}
 
 	static public File read() {
-		//		String data = null;
-		String dirname = Environment.getExternalStorageDirectory().getAbsolutePath() + SAVE_DIR;
-		File f = new File(dirname+FILENAME);
+		// String data = null;
+		String dirname = Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + SAVE_DIR;
+		File f = new File(dirname + FILENAME);
 
 		if (MDebug.LOG)
 			Log.d(TAG, "Reading saved articles");
@@ -164,17 +157,18 @@ public class FeedSaver extends Object {
 
 		o += "\n";
 		o += " <item>\n";
-		o += "  <title>"+article.title+"</title>\n";
-		o += "  <guid>"+article.guid+"</guid>\n";
-		o += "  <link>"+article.url.toString()+"</link>\n";
-		o += "  <description>"+article.description+"</description>\n";
+		o += "  <title>" + article.title + "</title>\n";
+		o += "  <guid>" + article.guid + "</guid>\n";
+		o += "  <link>" + article.url.toString() + "</link>\n";
+		o += "  <description>" + article.description + "</description>\n";
 
-		if (article.category == null)
-			article.category = "";
+		if (article.feedCategory == null)
+			article.feedCategory = "";
 
-		o += "  <category>"+article.category+"</category>\n";
+		o += "  <category>" + article.feedCategory + "</category>\n";
 
-		o += "  <content><![CDATA["+article.getContent(false)+"]]></content>\n";
+		o += "  <content><![CDATA[" + article.getContent(false)
+				+ "]]></content>\n";
 		o += " </item>\n";
 
 		return o;

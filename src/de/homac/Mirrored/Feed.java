@@ -11,11 +11,10 @@
 
 package de.homac.Mirrored;
 
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-
 import android.util.Log;
+
+import java.net.URL;
+import java.util.ArrayList;
 
 class Feed extends RSSHandler {
 
@@ -23,7 +22,7 @@ class Feed extends RSSHandler {
 		super(m, url, online);
 	}
 
-	// only return those articles with a specific category
+	// only return those articles with a specific feedCategory
 	public ArrayList getArticles(String category) {
 		ArrayList<Article> articles;
 		ArrayList<Article> all_articles = getArticles();
@@ -40,7 +39,7 @@ class Feed extends RSSHandler {
 		articles = new ArrayList();
 
 		for (Article article : all_articles)
-			if (article.category.equals(category))
+			if (article.feedCategory.equals(category))
 				articles.add(article);
 
 		return articles;

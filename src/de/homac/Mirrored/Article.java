@@ -37,7 +37,7 @@ class Article extends Object {
 	public Bitmap image = null;
 	public URL url;
 	public String content = "";
-	public String category = "";
+	public String feedCategory = "";
 	public String guid = "";
 
 	public Mirrored app;
@@ -69,7 +69,7 @@ class Article extends Object {
 		image_url = a.image_url;
 		description = a.description;
 		content = a.content;
-		category = a.category;
+		feedCategory = a.feedCategory;
 		image = a.image;
 		guid = a.guid;
 		app = a.app;
@@ -82,9 +82,9 @@ class Article extends Object {
 		if (MDebug.LOG)
 			Log.d(TAG, "dateString()");
 
-		String date = guid.substring(guid.indexOf('_')+1);
-		SimpleDateFormat format = new SimpleDateFormat("EEE MMM d HH:mm:ss 'UTC' yyyy",
-							       Locale.ENGLISH);
+		String date = guid.substring(guid.indexOf('_') + 1);
+		SimpleDateFormat format = new SimpleDateFormat(
+				"EEE MMM d HH:mm:ss 'UTC' yyyy", Locale.ENGLISH);
 		format.setTimeZone(TimeZone.getTimeZone("UTC"));
 
 		Date d = format.parse(date, new ParsePosition(0));
@@ -92,7 +92,7 @@ class Article extends Object {
 			return "";
 
 		SimpleDateFormat format2 = new SimpleDateFormat("d. MMMM yyyy, HH:mm",
-								Locale.getDefault());
+				Locale.getDefault());
 		return format2.format(d);
 	}
 
@@ -119,7 +119,8 @@ class Article extends Object {
 
 			InputStream is = url.openStream();
 
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is, "ISO-8859-1"), 8 * 1024);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					is, "ISO-8859-1"), 8 * 1024);
 
 			sb.append(getArticleContent(reader, page > 1));
 			String line;
@@ -148,14 +149,15 @@ class Article extends Object {
 	}
 
 	public String getArticleUrl(int page) {
-		return ARTICLE_URL + _categories() + "/a-" + _id() + (page > 1 ? "-" + page : "") + ".html";
+		return ARTICLE_URL + _categories() + "/a-" + _id()
+				+ (page > 1 ? "-" + page : "") + ".html";
 	}
 
 	private String _categories() {
 		if (guid == null || guid.length() == 0) {
-			return null;
+			return "";
 		}
-		String split[] = url.toString().split("/");
+		String split[] = guid.toString().split("/");
 		if (split.length == 6) {
 			return split[3] + "/" + split[4];
 		} else if (split.length == 5) {
@@ -179,13 +181,15 @@ class Article extends Object {
 		return bitmap;
 	}
 
-	private String getArticleContent(BufferedReader reader, boolean skipTeaser) throws IOException {
+	private String getArticleContent(BufferedReader reader, boolean skipTeaser)
+			throws IOException {
 		StringBuilder text = new StringBuilder();
 		String line = null;
 		while ((line = reader.readLine()) != null && !(line.contains(CONTENT))) {
 			line = line.trim();
 			if (!skipTeaser) {
-				if (line.contains("<head>") || line.startsWith("<link") || line.contains("<meta")) {
+				if (line.contains("<head>") || line.startsWith("<link")
+						|| line.contains("<meta")) {
 					text.append(line);
 				}
 			}
@@ -205,7 +209,7 @@ class Article extends Object {
 		while (((line = reader.readLine()) != null) && diffCount > 0) {
 			diffCount -= countTag(line, "</div>");
 			if (diffCount == 1) {
-				//skip inner diffs -> fotostrecke, etc
+				// skip inner diffs -> fotostrecke, etc
 				text.append(line);
 			}
 			if (diffCount > 0) {
@@ -235,73 +239,93 @@ class Article extends Object {
 
 		int start, end;
 
-		// cut everything starting with "Zum Thema" at the bottom of most articles...
+		// cut everything starting with "Zum Thema" at the bottom of most
+		// articles...
 		start = content.indexOf("<div>Zum Thema:");
 		if (start != -1) {
 			end = content.indexOf("</div></div></div></body></html>");
-			content = content.substring(0, start-1) + content.substring(end, content.length());
+			content = content.substring(0, start - 1)
+					+ content.substring(end, content.length());
 		}
 		// cut everything until '<div class="text mode1"', mostly ads
 		start = content.indexOf("<p align=\"center\">");
 		if (start != -1) {
 			end = content.indexOf("</p>");
-			content = content.substring(0, start-1) + content.substring(end+4, content.length());
+			content = content.substring(0, start - 1)
+					+ content.substring(end + 4, content.length());
 		}
-		////////////
+		// //////////
 		start = content.indexOf("<strong>MEHR ");
 		if (start != -1) {
 			end = content.indexOf("</div></div></div></body></html>");
-			content = content.substring(0, start-1) + content.substring(end, content.length());
+			content = content.substring(0, start - 1)
+					+ content.substring(end, content.length());
 		}
 		// Multiple page articles, remove the links to next/prev page
 		start = content.indexOf("<strong>1</strong>");
 		if (start != -1) {
 			end = content.indexOf("</div></div></div></body></html>");
-			content = content.substring(0, start-1) + content.substring(end, content.length());
+			content = content.substring(0, start - 1)
+					+ content.substring(end, content.length());
 		}
 		start = content.indexOf("ZUR&#xdc;CK</span>");
 		if (start != -1) {
 			end = content.indexOf("</div></div></div></body></html>");
-			content = content.substring(0, start-1) + content.substring(end, content.length());
+			content = content.substring(0, start - 1)
+					+ content.substring(end, content.length());
 		}
 
-		//////////////
+		// ////////////
 		// only do the following when not connected to the internet
 		if (!online) {
 			int i = 0;
 			while ((start = content.indexOf("<img")) != -1) {
 				end = content.indexOf('>', start);
-				content = content.substring(0, start-1) + content.substring(end, content.length());
+				content = content.substring(0, start - 1)
+						+ content.substring(end, content.length());
 				i++;
 			}
 			if (MDebug.LOG)
 				Log.d(TAG, "Replaced " + i + " occurences of <img...>");
 		}
-		///////////////////////
+		// /////////////////////
 
-		//		content = content.replaceAll("ddp", "");
+		// content = content.replaceAll("ddp", "");
 		content = content.replaceAll("FOTOSTRECKE", "");
-		content = content.replaceAll("padding-top: .px;padding-bottom: .px;background-color: #ececec;", "");
-		content = content.replaceAll("padding-top: 8px;background-color: #ececec;", "");
+		content = content
+				.replaceAll(
+						"padding-top: .px;padding-bottom: .px;background-color: #ececec;",
+						"");
+		content = content.replaceAll(
+				"padding-top: 8px;background-color: #ececec;", "");
 		content = content.replaceAll("background-color: #ececec;", "");
 		content = content.replaceAll("Video abspielen", "");
 		content = content.replaceAll("separator mode1 ", "");
-		//		content = content.replaceAll("global.css", "sss");
-		content = content.replaceAll("border-color: #ececec;border-style: solid;border-width: ..px;", "");
+		// content = content.replaceAll("global.css", "sss");
+		content = content
+				.replaceAll(
+						"border-color: #ececec;border-style: solid;border-width: ..px;",
+						"");
 
 		/* font substitutions */
 		int prefFontSize = app.getIntPreference("PrefFontSize", 6);
-		int newsize = 19 + (prefFontSize-6);
-		int newsize_large = (int)((22.0/19.0) * (double)newsize);
-		int newsize_large_large = (int)((26.0/19.0) * (double)newsize);
-		int newsize_misc = (int)((15.0/19.0) * (double)newsize);
+		int newsize = 19 + (prefFontSize - 6);
+		int newsize_large = (int) ((22.0 / 19.0) * (double) newsize);
+		int newsize_large_large = (int) ((26.0 / 19.0) * (double) newsize);
+		int newsize_misc = (int) ((15.0 / 19.0) * (double) newsize);
 		if (MDebug.LOG)
-			Log.d(TAG, "Font sizes for this article: " + newsize + ", " + newsize_large + ", " + newsize_large_large + ", " + newsize_misc);
+			Log.d(TAG, "Font sizes for this article: " + newsize + ", "
+					+ newsize_large + ", " + newsize_large_large + ", "
+					+ newsize_misc);
 
-		content = content.replaceAll("font-size:19px", "font-size:"+newsize+"px");
-		content = content.replaceAll("font-size:22px", "font-size:"+newsize_large+"px");
-		content = content.replaceAll("font-size:26px", "font-size:"+newsize_large_large+"px");
-		content = content.replaceAll("font-size:15px", "font-size:"+newsize_misc+"px");
+		content = content.replaceAll("font-size:19px", "font-size:" + newsize
+				+ "px");
+		content = content.replaceAll("font-size:22px", "font-size:"
+				+ newsize_large + "px");
+		content = content.replaceAll("font-size:26px", "font-size:"
+				+ newsize_large_large + "px");
+		content = content.replaceAll("font-size:15px", "font-size:"
+				+ newsize_misc + "px");
 	}
 
 	public String getContent(boolean online, int page) {
@@ -311,9 +335,10 @@ class Article extends Object {
 			return content;
 		} else {
 			if (MDebug.LOG)
-				Log.d(TAG, "Article doesn't have content, downloading and returning it");
+				Log.d(TAG,
+						"Article doesn't have content, downloading and returning it");
 			content = _downloadContent(online, page);
-			//            trimContent(online);
+			// trimContent(online);
 
 			return content;
 		}
@@ -334,7 +359,8 @@ class Article extends Object {
 			return image;
 		} else {
 			if (MDebug.LOG)
-				Log.d(TAG, "Article doesn't have image, downloading and returning it");
+				Log.d(TAG,
+						"Article doesn't have image, downloading and returning it");
 
 			if (image_url != null)
 				image = _downloadImage();

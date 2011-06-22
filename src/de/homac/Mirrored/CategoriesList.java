@@ -11,24 +11,26 @@
 
 package de.homac.Mirrored;
 
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import android.app.ListActivity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+
+import java.util.Arrays;
+import java.util.Comparator;
 
 public class CategoriesList extends ListActivity {
 
+	private static final Comparator<String> STRING_COMPARATOR = new Comparator<String>() {
+		public int compare(String pString1, String pString2) {
+			return pString1.compareTo(pString2);
+		}
+	};
 	private String TAG;
 	private Mirrored app;
 
@@ -37,11 +39,11 @@ public class CategoriesList extends ListActivity {
 
 	@Override
 	protected void onCreate(Bundle icicle) {
-		app = (Mirrored)getApplication();
+		app = (Mirrored) getApplication();
 		TAG = app.APP_NAME + ", " + "CategoriesList";
 
 		SharedPreferences prefs = PreferenceManager
-			.getDefaultSharedPreferences(getBaseContext());
+				.getDefaultSharedPreferences(getBaseContext());
 		if (prefs.getBoolean("PrefDarkBackground", false)) {
 			if (MDebug.LOG)
 				Log.d(TAG, "Setting black theme");
@@ -59,14 +61,10 @@ public class CategoriesList extends ListActivity {
 			Log.d(TAG, "Getting categories array resource");
 		_categories = getResources().getStringArray(R.array.categories);
 
-		List<String> items = new ArrayList<String>();
-        Collections.sort(items);
-
-		for (String category : _categories)
-			items.add(category);
-
-		ArrayAdapter<String> notes =
-			new ArrayAdapter<String>(this, R.layout.category_row, R.id.category_name, items);
+		ArrayAdapter<String> notes = new ArrayAdapter<String>(this,
+				R.layout.category_row, R.id.category_name,
+				Arrays.asList(_categories));
+		notes.sort(STRING_COMPARATOR);
 		setListAdapter(notes);
 
 		_counter++;
@@ -84,22 +82,24 @@ public class CategoriesList extends ListActivity {
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
 
-		String s = _categories[position].substring(0,1).toLowerCase() + _categories[position].substring(1);
+		String category = l.getAdapter().getItem(position).toString()
+				.toLowerCase();
 		if (MDebug.LOG)
-			Log.d(TAG, "putExtra() category: "+s);
+			Log.d(TAG, "putExtra() feedCategory: " + category);
 
 		Intent intent = new Intent(this, ArticlesList.class);
-		intent.putExtra(app.EXTRA_CATEGORY, s);
+		intent.putExtra(app.EXTRA_CATEGORY, category);
 		intent.setAction(Intent.ACTION_VIEW);
 		startActivity(intent);
 
 		// only allow one instance of the categories list view
 		if (MDebug.LOG)
-			Log.d(TAG, "Checking counter: "+_counter);
+			Log.d(TAG, "Checking counter: " + _counter);
 		if (_counter > 1) {
 			if (MDebug.LOG)
-				Log.d(TAG, "We already have one CategoriesList, finishing this one");
-			//			this.finish();
+				Log.d(TAG,
+						"We already have one CategoriesList, finishing this one");
+			// this.finish();
 		}
 	}
 }
