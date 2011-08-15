@@ -134,6 +134,8 @@ public class RSSHandler extends DefaultHandler {
 			_currentArticle.feedCategory = tString.toLowerCase();
 		} else if (name.trim().equals("guid")) {
 			_currentArticle.guid = tString;
+		} else if (name.trim().equals("pubDate")) {
+			_currentArticle.pubDate = tString;
 		} else if (name.trim().equals("item")) {
 			// Subfeeds e.g. netzwelt oder kultur have no category tag, so
 			// calculate it from url

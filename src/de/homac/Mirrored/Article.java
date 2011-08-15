@@ -39,6 +39,7 @@ class Article extends Object {
 	public String content = "";
 	public String feedCategory = "";
 	public String guid = "";
+	public String pubDate = "";
 
 	public Mirrored app;
 
@@ -72,22 +73,23 @@ class Article extends Object {
 		feedCategory = a.feedCategory;
 		image = a.image;
 		guid = a.guid;
+		pubDate = a.pubDate;
 		app = a.app;
 	}
 
 	public String dateString() {
-		if (guid == null || guid.length() == 0)
+		if (pubDate == null || pubDate.length() == 0) {
 			return null;
+		}
 
 		if (MDebug.LOG)
 			Log.d(TAG, "dateString()");
 
-		String date = guid.substring(guid.indexOf('_') + 1);
 		SimpleDateFormat format = new SimpleDateFormat(
-				"EEE MMM d HH:mm:ss 'UTC' yyyy", Locale.ENGLISH);
+				"EEE, dd MMM yyyy HH:mm:ss +0200", Locale.ENGLISH);
 		format.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-		Date d = format.parse(date, new ParsePosition(0));
+		Date d = format.parse(pubDate, new ParsePosition(0));
 		if (d == null)
 			return "";
 
