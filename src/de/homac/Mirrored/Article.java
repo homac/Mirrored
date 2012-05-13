@@ -13,14 +13,11 @@
 
 package de.homac.Mirrored;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Log;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParsePosition;
@@ -28,6 +25,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import android.util.Log;
+import android.graphics.BitmapFactory;
+import android.graphics.Bitmap;
 
 class Article extends Object {
 
@@ -41,6 +44,8 @@ class Article extends Object {
 	public String guid = "";
 
 	public Mirrored app;
+
+	private Pattern idPattern = Pattern.compile("a-([0-9]+).");
 
 	static private final String ARTICLE_URL = "http://m.spiegel.de/";
 	static private final String TAG = "Mirrored," + "Article";
@@ -83,16 +88,14 @@ class Article extends Object {
 			Log.d(TAG, "dateString()");
 
 		String date = guid.substring(guid.indexOf('_') + 1);
-		SimpleDateFormat format = new SimpleDateFormat(
-				"EEE MMM d HH:mm:ss 'UTC' yyyy", Locale.ENGLISH);
+		SimpleDateFormat format = new SimpleDateFormat("EEE MMM d HH:mm:ss 'UTC' yyyy", Locale.ENGLISH);
 		format.setTimeZone(TimeZone.getTimeZone("UTC"));
 
 		Date d = format.parse(date, new ParsePosition(0));
 		if (d == null)
 			return "";
 
-		SimpleDateFormat format2 = new SimpleDateFormat("d. MMMM yyyy, HH:mm",
-				Locale.getDefault());
+		SimpleDateFormat format2 = new SimpleDateFormat("d. MMMM yyyy, HH:mm", Locale.getDefault());
 		return format2.format(d);
 	}
 
@@ -100,16 +103,14 @@ class Article extends Object {
 		if (guid == null || guid.length() == 0) {
 			return null;
 		}
-		String split[] = url.toString().split(",");
-		if (split.length != 4) {
-			if (MDebug.LOG)
-				Log.e(TAG, "Couldn't calculate article id");
-			return null;
-		}
-		return split[2];
+		Matcher matcher = idPattern.matcher(guid);
+		if (matcher .find() && matcher.groupCount() == 1) {
+            return matcher.group(1);
+        }
+		return null;
 	}
 
-	private String _downloadContent(boolean online, int page) {
+	private String _downloadContent( int page) throws ArticleDownloadException {
 		StringBuilder sb = new StringBuilder();
 		try {
 
@@ -117,12 +118,21 @@ class Article extends Object {
 			if (MDebug.LOG)
 				Log.d(TAG, "Downloading " + url.toString());
 
-			InputStream is = url.openStream();
+			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+			urlConnection.setRequestMethod("GET");
+			urlConnection.connect();
+			int responseCode = urlConnection.getResponseCode();
+            if (responseCode != 200) {
+                Log.e(TAG, String.format("Could not download url '%s'. Errorcode is:  %s.", url, responseCode));
+                throw new ArticleDownloadException(responseCode);
+            }
 
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					is, "ISO-8859-1"), 8 * 1024);
+			Log.d(TAG, String.format("Response code is %s", responseCode));
+			InputStream is = urlConnection.getInputStream();
 
-			sb.append(getArticleContent(reader, page > 1));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(is, "ISO-8859-1"), 8 * 1024);
+
+			sb.append(extractArticleContent(reader, page > 1));
 			String line;
 			boolean couldHasNext = false;
 			while ((line = reader.readLine()) != null) {
@@ -130,7 +140,7 @@ class Article extends Object {
 					couldHasNext = true;
 				} else if (couldHasNext && line.contains(">WEITER</a>")) {
 					Log.d(TAG, "Downloading next page");
-					sb.append(this.getContent(online, page + 1));
+					sb.append(this.downloadContent(page + 1));
 				}
 			}
 			is.close();
@@ -149,8 +159,7 @@ class Article extends Object {
 	}
 
 	public String getArticleUrl(int page) {
-		return ARTICLE_URL + _categories() + "/a-" + _id()
-				+ (page > 1 ? "-" + page : "") + ".html";
+		return ARTICLE_URL + _categories() + "/a-" + _id() + (page > 1 ? "-" + page : "") + ".html";
 	}
 
 	private String _categories() {
@@ -181,15 +190,13 @@ class Article extends Object {
 		return bitmap;
 	}
 
-	private String getArticleContent(BufferedReader reader, boolean skipTeaser)
-			throws IOException {
+	private String extractArticleContent(BufferedReader reader, boolean skipTeaser) throws IOException {
 		StringBuilder text = new StringBuilder();
 		String line = null;
 		while ((line = reader.readLine()) != null && !(line.contains(CONTENT))) {
 			line = line.trim();
 			if (!skipTeaser) {
-				if (line.contains("<head>") || line.startsWith("<link")
-						|| line.contains("<meta")) {
+				if (line.contains("<head>") || line.startsWith("<link") || line.contains("<meta")) {
 					text.append(line);
 				}
 			}
@@ -233,140 +240,35 @@ class Article extends Object {
 		return tagCount;
 	}
 
-	public void trimContent(boolean online) {
-		if (MDebug.LOG)
-			Log.d(TAG, "Trimming article content");
-
-		int start, end;
-
-		// cut everything starting with "Zum Thema" at the bottom of most
-		// articles...
-		start = content.indexOf("<div>Zum Thema:");
-		if (start != -1) {
-			end = content.indexOf("</div></div></div></body></html>");
-			content = content.substring(0, start - 1)
-					+ content.substring(end, content.length());
-		}
-		// cut everything until '<div class="text mode1"', mostly ads
-		start = content.indexOf("<p align=\"center\">");
-		if (start != -1) {
-			end = content.indexOf("</p>");
-			content = content.substring(0, start - 1)
-					+ content.substring(end + 4, content.length());
-		}
-		// //////////
-		start = content.indexOf("<strong>MEHR ");
-		if (start != -1) {
-			end = content.indexOf("</div></div></div></body></html>");
-			content = content.substring(0, start - 1)
-					+ content.substring(end, content.length());
-		}
-		// Multiple page articles, remove the links to next/prev page
-		start = content.indexOf("<strong>1</strong>");
-		if (start != -1) {
-			end = content.indexOf("</div></div></div></body></html>");
-			content = content.substring(0, start - 1)
-					+ content.substring(end, content.length());
-		}
-		start = content.indexOf("ZUR&#xdc;CK</span>");
-		if (start != -1) {
-			end = content.indexOf("</div></div></div></body></html>");
-			content = content.substring(0, start - 1)
-					+ content.substring(end, content.length());
-		}
-
-		// ////////////
-		// only do the following when not connected to the internet
-		if (!online) {
-			int i = 0;
-			while ((start = content.indexOf("<img")) != -1) {
-				end = content.indexOf('>', start);
-				content = content.substring(0, start - 1)
-						+ content.substring(end, content.length());
-				i++;
-			}
-			if (MDebug.LOG)
-				Log.d(TAG, "Replaced " + i + " occurences of <img...>");
-		}
-		// /////////////////////
-
-		// content = content.replaceAll("ddp", "");
-		content = content.replaceAll("FOTOSTRECKE", "");
-		content = content
-				.replaceAll(
-						"padding-top: .px;padding-bottom: .px;background-color: #ececec;",
-						"");
-		content = content.replaceAll(
-				"padding-top: 8px;background-color: #ececec;", "");
-		content = content.replaceAll("background-color: #ececec;", "");
-		content = content.replaceAll("Video abspielen", "");
-		content = content.replaceAll("separator mode1 ", "");
-		// content = content.replaceAll("global.css", "sss");
-		content = content
-				.replaceAll(
-						"border-color: #ececec;border-style: solid;border-width: ..px;",
-						"");
-
-		/* font substitutions */
-		int prefFontSize = app.getIntPreference("PrefFontSize", 6);
-		int newsize = 19 + (prefFontSize - 6);
-		int newsize_large = (int) ((22.0 / 19.0) * (double) newsize);
-		int newsize_large_large = (int) ((26.0 / 19.0) * (double) newsize);
-		int newsize_misc = (int) ((15.0 / 19.0) * (double) newsize);
-		if (MDebug.LOG)
-			Log.d(TAG, "Font sizes for this article: " + newsize + ", "
-					+ newsize_large + ", " + newsize_large_large + ", "
-					+ newsize_misc);
-
-		content = content.replaceAll("font-size:19px", "font-size:" + newsize
-				+ "px");
-		content = content.replaceAll("font-size:22px", "font-size:"
-				+ newsize_large + "px");
-		content = content.replaceAll("font-size:26px", "font-size:"
-				+ newsize_large_large + "px");
-		content = content.replaceAll("font-size:15px", "font-size:"
-				+ newsize_misc + "px");
-	}
-
-	public String getContent(boolean online, int page) {
+    public String downloadContent(int page) throws ArticleDownloadException {
 		if (content != null && content.length() != 0) {
 			if (MDebug.LOG)
 				Log.d(TAG, "Article already has content, returning it");
 			return content;
 		} else {
 			if (MDebug.LOG)
-				Log.d(TAG,
-						"Article doesn't have content, downloading and returning it");
-			content = _downloadContent(online, page);
-			// trimContent(online);
-
+				Log.d(TAG, "Article doesn't have content, downloading and returning it");
+			content = _downloadContent(page);
 			return content;
 		}
 	}
 
-	public String getContent(boolean online) {
-		return getContent(online, 1);
+	public String downloadContent() throws ArticleDownloadException {
+		return downloadContent( 1);
 	}
 
+    public String getContent() {
+        return content;
+    }
+
+    public Bitmap downloadImage() {
+        if (image_url != null)
+       				image = _downloadImage();
+       			return image;
+    }
+
 	public Bitmap getImage(boolean online) {
-		if (!online)
 			return image;
-
-		if (image != null) {
-			if (MDebug.LOG)
-				Log.d(TAG, "Article already has image, returning it");
-
-			return image;
-		} else {
-			if (MDebug.LOG)
-				Log.d(TAG,
-						"Article doesn't have image, downloading and returning it");
-
-			if (image_url != null)
-				image = _downloadImage();
-
-			return image;
-		}
 	}
 
 	public void resetContent() {

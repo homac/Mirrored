@@ -11,21 +11,23 @@
 
 package de.homac.Mirrored;
 
-import android.os.Environment;
-import android.util.DisplayMetrics;
-import android.util.Log;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import android.util.Log;
+import android.util.DisplayMetrics;
+import android.os.Environment;
+
 public class FeedSaver extends Object {
 
 	static public final String SAVE_DIR = "/Android/data/de.homac.Mirrored/";
 
 	private Feed _feed;
+
+	private Mirrored app;
 
 	static private String TAG;
 
@@ -35,6 +37,7 @@ public class FeedSaver extends Object {
 
 	public FeedSaver(Mirrored app, Feed feed, DisplayMetrics dm) {
 		this._feed = feed;
+		this.app = app;
 		TAG = app.APP_NAME + ", " + "FeedSaver";
 
 		ArrayList<Article> existing_articles = _feed.getArticles();
@@ -66,8 +69,7 @@ public class FeedSaver extends Object {
 	public boolean save(DisplayMetrics dm) {
 		FileOutputStream fos = null;
 		BufferedWriter out;
-		String dirname = Environment.getExternalStorageDirectory()
-				.getAbsolutePath() + SAVE_DIR;
+		String dirname = Environment.getExternalStorageDirectory().getAbsolutePath() + SAVE_DIR;
 		File directory = new File(dirname);
 
 		if (MDebug.LOG)
@@ -94,14 +96,14 @@ public class FeedSaver extends Object {
 				Log.e(TAG, e.toString());
 			throw new IllegalStateException("Failed to create " + f.toString());
 		}
-
 		try {
 			fos = new FileOutputStream(f);
 
 			fos.write(_startXML().getBytes());
 			if (_articles != null)
-				for (Article article : _articles)
+				for (Article article : _articles) {
 					fos.write(_articleXML(article, dm).getBytes());
+				}
 			fos.write(_finishXML().getBytes());
 
 		} catch (IOException e) {
@@ -128,8 +130,7 @@ public class FeedSaver extends Object {
 
 	static public File read() {
 		// String data = null;
-		String dirname = Environment.getExternalStorageDirectory()
-				.getAbsolutePath() + SAVE_DIR;
+		String dirname = Environment.getExternalStorageDirectory().getAbsolutePath() + SAVE_DIR;
 		File f = new File(dirname + FILENAME);
 
 		if (MDebug.LOG)
@@ -167,8 +168,7 @@ public class FeedSaver extends Object {
 
 		o += "  <category>" + article.feedCategory + "</category>\n";
 
-		o += "  <content><![CDATA[" + article.getContent(false)
-				+ "]]></content>\n";
+		o += "  <content><![CDATA[" + article.getContent() + "]]></content>\n";
 		o += " </item>\n";
 
 		return o;

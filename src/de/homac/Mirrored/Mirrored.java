@@ -18,6 +18,7 @@ import android.net.NetworkInfo;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.content.Context;
+import android.text.Html;
 import android.util.Log;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -76,6 +77,7 @@ public class Mirrored extends Application {
 
 		APP_NAME = getString(R.string.app_name);
 		TAG = APP_NAME;
+        MDebug.LOG = getBooleanPreference("PrefEnableDebug", false);
 		if (MDebug.LOG)
 			Log.d(TAG, "starting");
 
@@ -138,7 +140,7 @@ public class Mirrored extends Application {
 				is.close();
 			}
 			return sb.toString();
-		} else {        
+		} else {
 			return "";
 		}
 	}
@@ -169,9 +171,17 @@ public class Mirrored extends Application {
 		return prefs.getInt(pref, def);
 	}
 
-	public void showDialog(Activity activity, String text) {
-		AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
-		alertDialog.setMessage(text);
+    public void showDialog(Context context, String text) {
+         showDialog(context,text,false);
+    }
+
+	public void showDialog(Context  context, String text, boolean formatted) {
+		AlertDialog alertDialog = new AlertDialog.Builder(context).create();
+        if (formatted) {
+            alertDialog.setMessage(Html.fromHtml(text));
+        } else {
+            alertDialog.setMessage(text);
+        }
 		alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
 					return;

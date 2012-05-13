@@ -33,7 +33,7 @@
        android:key="PrefStartWithOfflineMode" />
   </PreferenceCategory>
   <PreferenceCategory
-     android:title="@string/preferences_category_misc">
+     android:title="@string/preference_category_misc">
     <com.hlidskialf.android.preference.SeekBarPreference
        android:title="@string/preference_font_size_title"
        android:summary="@string/preference_font_size_summary"
@@ -41,6 +41,12 @@
        android:text=""
        android:defaultValue="6"
        android:max="10" />
+      <CheckBoxPreference
+      android:title="@string/preference_debug_mode"
+      android:defaultValue="false"
+      android:summary="@string/preference_debug_mode_summary"
+      android:key="PrefEnableDebug" />
+
     <de.homac.Mirrored.DialogExPreference
        android:key="PrefAboutDialog"
        android:title="@string/preference_about_title"

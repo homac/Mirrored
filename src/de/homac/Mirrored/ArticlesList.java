@@ -31,6 +31,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class ArticlesList extends ListActivity implements Runnable {
 	static final int CONTEXT_MENU_DELETE_ID = 0;
@@ -50,7 +51,7 @@ public class ArticlesList extends ListActivity implements Runnable {
 	static final String BASE_CATEGORY_FEED = FEED_PREFIX
 			+ Mirrored.BASE_CATEGORY + FEED_SUFFIX;
 
-	private ArrayList<Article> _articles = null;
+	private List<Article> _articles = null;
 	private ArrayList<Bitmap> _article_images = new ArrayList<Bitmap>();
 	private Feed _feed;
 	private FeedSaver _saver;
@@ -112,7 +113,7 @@ public class ArticlesList extends ListActivity implements Runnable {
 						Log.d(TAG, "Got feedCategory from preferences: "
 								+ startWithCategory);
 
-					_url = new URL(BASE_CATEGORY_FEED + startWithCategory);
+					_url = new URL(FEED_PREFIX+ startWithCategory + FEED_SUFFIX);
 					category = startWithCategory;
 				} else {
 					if (MDebug.LOG)
@@ -157,22 +158,21 @@ public class ArticlesList extends ListActivity implements Runnable {
 	}
 
 	public void run() {
-
 		if (_saveAllArticles) {
 			_saveAllArticles = false;
 
 			ArticleContentDownloader downloader = new ArticleContentDownloader(
 					app, _displayMetrics(), _articles, true, false,
 					_internetReady);
-			downloader.download();
-
-			for (Article article : _articles) {
+            List<Article> downloadedArticles = downloader.download();
+            for (Article article : downloadedArticles) {
 				// make sure we actually have content
 				_saver.add(article);
 			}
 
 			_saver.save(_displayMetrics());
 			_pdialog.dismiss();
+
 
 			return;
 
@@ -184,7 +184,7 @@ public class ArticlesList extends ListActivity implements Runnable {
 					app.getBooleanPreference("PrefDownloadAllArticles", false),
 					app.getBooleanPreference("PrefDownloadImages", true)
 							&& _internetReady, _internetReady);
-			downloader.download();
+			_articles = downloader.download();
 
 			_handler.sendEmptyMessage(0);
 			return;
