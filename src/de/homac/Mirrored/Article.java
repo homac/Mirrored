@@ -132,7 +132,9 @@ class Article extends Object {
 			InputStream is = urlConnection.getInputStream();
 
 			BufferedReader reader = new BufferedReader(new InputStreamReader(is, "ISO-8859-1"), 8 * 1024);
-
+            if (page == 0) {
+                sb.append("<html>");
+            }
 			sb.append(extractArticleContent(reader, page > 1, downloadImage));
 			String line;
 			boolean couldHasNext = false;
@@ -205,6 +207,10 @@ class Article extends Object {
 			continue;
 		}
         boolean hasImage=false;
+
+        if(!skipTeaser){ //write body tag
+            text.append("<body>");
+        }
 		text.append(line.substring(line.indexOf(CONTENT)));
 		while (((line = reader.readLine()) != null) && !(line.contains(TEASER))) {
 			if (!skipTeaser) {
