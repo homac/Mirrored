@@ -13,6 +13,10 @@
 
 package de.homac.Mirrored;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,10 +31,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import android.util.Log;
-import android.graphics.BitmapFactory;
-import android.graphics.Bitmap;
 
 class Article extends Object {
 
@@ -51,6 +51,7 @@ class Article extends Object {
 	static private final String TAG = "Mirrored," + "Article";
 	private static final String TEASER = "<p id=\"spIntroTeaser\">";
 	private static final String CONTENT = "<div class=\"spArticleContent\"";
+	private static final String IMAGE = "<div class=\"spArticleImageBox";
 
 	public Article(Mirrored app) {
 		this.app = app;
@@ -110,7 +111,7 @@ class Article extends Object {
 		return null;
 	}
 
-	private String _downloadContent( int page) throws ArticleDownloadException {
+	private String _downloadContent(int page, boolean downloadImage) throws ArticleDownloadException {
 		StringBuilder sb = new StringBuilder();
 		try {
 
@@ -132,7 +133,7 @@ class Article extends Object {
 
 			BufferedReader reader = new BufferedReader(new InputStreamReader(is, "ISO-8859-1"), 8 * 1024);
 
-			sb.append(extractArticleContent(reader, page > 1));
+			sb.append(extractArticleContent(reader, page > 1, downloadImage));
 			String line;
 			boolean couldHasNext = false;
 			while ((line = reader.readLine()) != null) {
@@ -140,7 +141,7 @@ class Article extends Object {
 					couldHasNext = true;
 				} else if (couldHasNext && line.contains(">WEITER</a>")) {
 					Log.d(TAG, "Downloading next page");
-					sb.append(this.downloadContent(page + 1));
+					sb.append(this.downloadContent(page + 1, downloadImage));
 				}
 			}
 			is.close();
@@ -190,7 +191,8 @@ class Article extends Object {
 		return bitmap;
 	}
 
-	private String extractArticleContent(BufferedReader reader, boolean skipTeaser) throws IOException {
+	private String extractArticleContent(BufferedReader reader, boolean skipTeaser, boolean downloadImage)
+			throws IOException {
 		StringBuilder text = new StringBuilder();
 		String line = null;
 		while ((line = reader.readLine()) != null && !(line.contains(CONTENT))) {
@@ -202,15 +204,20 @@ class Article extends Object {
 			}
 			continue;
 		}
+        boolean hasImage=false;
 		text.append(line.substring(line.indexOf(CONTENT)));
-
 		while (((line = reader.readLine()) != null) && !(line.contains(TEASER))) {
 			if (!skipTeaser) {
-				text.append(line);
+				if (!downloadImage && line.contains(IMAGE)) {
+                    hasImage=true;
+				}
+                if (!hasImage) {
+                    text.append(line);
+                }
 			}
 			continue;
 		}
-		text.append(line.substring(line.indexOf(TEASER)));
+        text.append(line.substring(line.indexOf(TEASER)));
 
 		int diffCount = 1;
 		while (((line = reader.readLine()) != null) && diffCount > 0) {
@@ -240,7 +247,7 @@ class Article extends Object {
 		return tagCount;
 	}
 
-    public String downloadContent(int page) throws ArticleDownloadException {
+	public String downloadContent(int page, boolean downloadImage) throws ArticleDownloadException {
 		if (content != null && content.length() != 0) {
 			if (MDebug.LOG)
 				Log.d(TAG, "Article already has content, returning it");
@@ -248,26 +255,26 @@ class Article extends Object {
 		} else {
 			if (MDebug.LOG)
 				Log.d(TAG, "Article doesn't have content, downloading and returning it");
-			content = _downloadContent(page);
+			content = _downloadContent(page, downloadImage);
 			return content;
 		}
 	}
 
-	public String downloadContent() throws ArticleDownloadException {
-		return downloadContent( 1);
+	public String downloadContent(boolean downloadImage) throws ArticleDownloadException {
+		return downloadContent(1, downloadImage);
 	}
 
     public String getContent() {
         return content;
     }
 
-    public Bitmap downloadImage() {
+	public Bitmap downloadThumbnailImage() {
         if (image_url != null)
        				image = _downloadImage();
        			return image;
     }
 
-	public Bitmap getImage(boolean online) {
+	public Bitmap getThumbnailImage() {
 			return image;
 	}
 

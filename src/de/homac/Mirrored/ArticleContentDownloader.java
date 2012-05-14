@@ -71,13 +71,13 @@ public class ArticleContentDownloader {
 		public void run() {
 			try {
 				if (_downloadContent) {
-					article.downloadContent();
-					if (_downloadImages) {
-						article.downloadImage();
-					}
-				}
-				downloadedArticles.add(article);
-			} catch (ArticleDownloadException e) {
+				article.downloadContent(_downloadImages);
+                }
+                if (_downloadImages) {
+                    article.downloadThumbnailImage();
+                }
+                downloadedArticles.add(article);
+            } catch (ArticleDownloadException e) {
 				Log.e(TAG,
 						String.format("Could not fetch article '%s', statuscode was %s", article.getArticleUrl(0),
 								e.getHttpCode()));

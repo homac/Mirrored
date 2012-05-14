@@ -88,7 +88,7 @@ public class ArticleViewer extends Activity {
 		// TODO: this is not good if article is already downloaded via selected option
 		if (article.getContent() == null || article.getContent().length() == 0) {
 			try {
-				_content = article.downloadContent();
+				_content = article.downloadContent(app.getBooleanPreference("PrefDownloadImages", true));
 			} catch (ArticleDownloadException e) {
 				Spanned text = Html.fromHtml(getString(R.string.article_download_error, e.getHttpCode()));
 				Toast toast = Toast.makeText(app.getBaseContext(), text, Toast.LENGTH_SHORT);
