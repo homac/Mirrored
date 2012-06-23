@@ -64,6 +64,10 @@ public class ArticleViewer extends Activity {
         article = (Article) getLastNonConfigurationInstance();
         if (article == null) {
             article = app.getArticle();
+	    if (article == null) {
+                Log.d(TAG, "Article is null, finishing");
+                this.finish();
+            }
         }
         showArticle(article);
     }
