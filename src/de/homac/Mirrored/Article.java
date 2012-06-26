@@ -86,7 +86,7 @@ class Article extends Object {
 			Log.d(TAG, "dateString()");
 
 		SimpleDateFormat format = new SimpleDateFormat(
-				"EEE, dd MMM yyyy HH:mm:ss +0200", Locale.ENGLISH);
+					       "EEE, dd MMM yyyy HH:mm:ss +0200", Locale.ENGLISH);
 		format.setTimeZone(TimeZone.getTimeZone("UTC"));
 
 		Date d = format.parse(pubDate, new ParsePosition(0));
@@ -94,7 +94,7 @@ class Article extends Object {
 			return "";
 
 		SimpleDateFormat format2 = new SimpleDateFormat("d. MMMM yyyy, HH:mm",
-				Locale.getDefault());
+								Locale.getDefault());
 		return format2.format(d);
 	}
 
