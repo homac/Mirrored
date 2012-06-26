@@ -102,13 +102,22 @@ class Article extends Object {
 		if (guid == null || guid.length() == 0) {
 			return null;
 		}
-		String split[] = url.toString().split(",");
-		if (split.length != 4) {
+
+		String id = "";
+		int start = url.toString().indexOf("-a-");
+		if (start == -1) {
 			if (MDebug.LOG)
 				Log.e(TAG, "Couldn't calculate article id");
 			return null;
 		}
-		return split[2];
+
+		int end = url.toString().indexOf(".html");
+		id = url.toString().substring(start + 3, end);
+
+		if (MDebug.LOG)
+			Log.e(TAG, "Article id is " + id);
+
+		return id;
 	}
 
 	private String _downloadContent(boolean online, int page) {
