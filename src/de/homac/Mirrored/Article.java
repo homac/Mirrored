@@ -87,7 +87,7 @@ class Article extends Object {
 
 		SimpleDateFormat format = new SimpleDateFormat(
 					       "EEE, dd MMM yyyy HH:mm:ss +0200", Locale.ENGLISH);
-		format.setTimeZone(TimeZone.getTimeZone("UTC"));
+		format.setTimeZone(TimeZone.getDefault());
 
 		Date d = format.parse(pubDate, new ParsePosition(0));
 		if (d == null)
