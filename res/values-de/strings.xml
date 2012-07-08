@@ -53,7 +53,11 @@
   <string name="preference_start_with_offline_mode_summary">Die Anwendung
   immer im Offline-Modus starten.</string>
 
-  <string name="preferences_category_misc">Sonstiges</string>
+    <string name="preference_debug_mode_summary">Debug modus aktivieren,
+        um dem Entwickler bei der Fehlersuche zu unterstützen</string>
+
+  <string name="preference_debug_mode">Debug modus</string>
+  <string name="preference_category_misc">Sonstiges</string>
   <string name="preference_about_title">Über</string>
   <string name="preference_about_dialog_title">@string/app_name</string>
   <string name="preference_about_dialog_message">
@@ -70,4 +74,6 @@
   <string name="preference_font_size_title">Schriftgröße</string>
   <string name="preference_font_size_summary">Die Schriftgröße für
   Artikel als ein relativer Wert von 0 bis 10</string>
+    <string name="article_download_error"  formatted="false">
+        Konnte Artikel nicht herunteladen.&lt;br> &lt;i>HTTP Fehlercode war: %d&lt;Id></string>
 </resources>

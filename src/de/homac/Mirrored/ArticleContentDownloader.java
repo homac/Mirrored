@@ -11,46 +11,39 @@
 
 package de.homac.Mirrored;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import android.util.Log;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
-public class ArticleContentDownloader extends Object implements Runnable {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-	private Iterator _article_iter = null;
-	private final Lock _lock = new ReentrantLock();
-	private ArrayList<Article> _articles = null;
+public class ArticleContentDownloader {
+
+	private List<Article> _articles = null;
 
 	private String TAG;
-	private Mirrored app;
 
-	private final boolean _downloadImages;
+    private final boolean _downloadImages;
 	private final boolean _downloadContent;
-	private final boolean _internetReady;
 
-    public ArticleContentDownloader(Mirrored app, DisplayMetrics dm, ArrayList<Article> articles,
-					boolean downloadContent, boolean downloadImages, boolean internetReady) {
+	private List<Article> downloadedArticles;
+
+	public ArticleContentDownloader(Mirrored app, DisplayMetrics dm, List<Article> articles, boolean downloadContent,
+			boolean downloadImages, boolean internetReady) {
 
 		_articles = articles;
 		_downloadImages = downloadImages;
 		_downloadContent = downloadContent;
-		_internetReady = internetReady;
+		downloadedArticles = Collections.synchronizedList(new ArrayList<Article>());
 
-        this.app = app;
-		TAG = app.APP_NAME + ", " + "ArticleContentDownloader";
+        TAG = app.APP_NAME + ", " + "ArticleContentDownloader";
 	}
- 
-	public void download() {
+
+	public List<Article> download() {
 		ArrayList<Thread> threads = new ArrayList<Thread>();
-		_article_iter = _articles.iterator();
-
-
 		for (Article article : _articles) {
-			Thread thread = new Thread(this);
+			Thread thread = new Thread(new ArticleDownloadThread(article));
 			thread.start();
 			threads.add(thread);
 		}
@@ -64,17 +57,31 @@ public class ArticleContentDownloader extends Object implements Runnable {
 			if (MDebug.LOG)
 				Log.e(TAG, e.toString());
 		}
+		return downloadedArticles;
 	}
 
-	public void run() {
-		_lock.lock();
-		if (_article_iter.hasNext()) {
-			Article a = (Article)_article_iter.next();
-			_lock.unlock();
-			if (_downloadContent)
-				a.getContent( _internetReady);
-			if (_downloadImages)
-				a.getImage(_internetReady);
+	private class ArticleDownloadThread implements Runnable {
+
+		private Article article;
+
+		public ArticleDownloadThread(Article article) {
+			this.article = article;
+		}
+
+		public void run() {
+			try {
+				if (_downloadContent) {
+				article.downloadContent(_downloadImages);
+                }
+                if (_downloadImages) {
+                    article.downloadThumbnailImage();
+                }
+                downloadedArticles.add(article);
+            } catch (ArticleDownloadException e) {
+				Log.e(TAG,
+						String.format("Could not fetch article '%s', statuscode was %s", article.getArticleUrl(0),
+								e.getHttpCode()));
+			}
 		}
 	}
 }

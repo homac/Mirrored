@@ -11,26 +11,25 @@
 
 package de.homac.Mirrored;
 
-import android.app.ListActivity;
-import android.app.ProgressDialog;
-import android.content.Intent;
-import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.text.Html;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.*;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.*;
-
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.*;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.*;
+import android.util.Log;
+import android.util.DisplayMetrics;
+import android.text.Html;
+import android.os.Message;
+import android.os.Handler;
+import android.os.Bundle;
+import android.content.res.Configuration;
+import android.content.Intent;
+import android.app.ProgressDialog;
+import android.app.ListActivity;
 
 public class ArticlesList extends ListActivity implements Runnable {
 	static final int CONTEXT_MENU_DELETE_ID = 0;
@@ -47,15 +46,12 @@ public class ArticlesList extends ListActivity implements Runnable {
 	// "http://www.spiegel.de/schlagzeilen/index.rss";
 	static final String FEED_PREFIX = "http://www.spiegel.de/";
 	static final String FEED_SUFFIX = "/index.rss";
-	static final String BASE_CATEGORY_FEED = FEED_PREFIX
-			+ Mirrored.BASE_CATEGORY + FEED_SUFFIX;
+	static final String BASE_CATEGORY_FEED = FEED_PREFIX + Mirrored.BASE_CATEGORY + FEED_SUFFIX;
 
-	private ArrayList<Article> _articles = null;
-	private ArrayList<Bitmap> _article_images = new ArrayList<Bitmap>();
+	private List<Article> _articles = null;
 	private Feed _feed;
 	private FeedSaver _saver;
 	private URL _url;
-	private String _prefStartWithCategory;
 	private boolean _internetReady;
 	private boolean _saveAllArticles = false;
 	private boolean _downloadArticleParts = false;
@@ -112,7 +108,7 @@ public class ArticlesList extends ListActivity implements Runnable {
 						Log.d(TAG, "Got feedCategory from preferences: "
 								+ startWithCategory);
 
-					_url = new URL(BASE_CATEGORY_FEED + startWithCategory);
+					_url = new URL(FEED_PREFIX+ startWithCategory + FEED_SUFFIX);
 					category = startWithCategory;
 				} else {
 					if (MDebug.LOG)
@@ -157,15 +153,12 @@ public class ArticlesList extends ListActivity implements Runnable {
 	}
 
 	public void run() {
-
 		if (_saveAllArticles) {
 			_saveAllArticles = false;
 
-			ArticleContentDownloader downloader = new ArticleContentDownloader(
-					app, _displayMetrics(), _articles, true, false,
-					_internetReady);
-			downloader.download();
-
+			ArticleContentDownloader downloader = new ArticleContentDownloader(app, _displayMetrics(), _articles, true,
+					app.getBooleanPreference("PrefDownloadImages", true), _internetReady);
+			_articles = downloader.download();
 			for (Article article : _articles) {
 				// make sure we actually have content
 				_saver.add(article);
@@ -179,12 +172,10 @@ public class ArticlesList extends ListActivity implements Runnable {
 		} else if (_downloadArticleParts) {
 			_downloadArticleParts = false;
 
-			ArticleContentDownloader downloader = new ArticleContentDownloader(
-					app, _displayMetrics(), _articles,
-					app.getBooleanPreference("PrefDownloadAllArticles", false),
-					app.getBooleanPreference("PrefDownloadImages", true)
-							&& _internetReady, _internetReady);
-			downloader.download();
+			ArticleContentDownloader downloader = new ArticleContentDownloader(app, _displayMetrics(), _articles,
+					app.getBooleanPreference("PrefDownloadAllArticles", false), app.getBooleanPreference(
+							"PrefDownloadImages", true) && _internetReady, _internetReady);
+			_articles = downloader.download();
 
 			_handler.sendEmptyMessage(0);
 			return;
@@ -245,17 +236,11 @@ public class ArticlesList extends ListActivity implements Runnable {
 				return;
 			}
 
-			for (Article article : _articles) {
-				_article_images.add(article.getImage(app.getBooleanPreference(
-						"PrefDownloadImages", true) && _internetReady));
-			}
-
 			setListAdapter(new IconicAdapter());
 			_pdialog.dismiss();
 
 			if (_articles.size() == 0)
-				app.showDialog(ArticlesList.this,
-						getString(R.string.no_articles));
+				app.showDialog(ArticlesList.this, getString(R.string.no_articles));
 		}
 	};
 
@@ -544,10 +529,8 @@ public class ArticlesList extends ListActivity implements Runnable {
 			TextView description = (TextView) row
 					.findViewById(R.id.article_description);
 
-			Bitmap b = _article_images.get(position);
-
 			headline.setText(article.title);
-			image.setImageBitmap(b);
+			image.setImageBitmap(article.getThumbnailImage());
 			description.setText(Html.fromHtml(article.description));
 			date.setText(article.dateString());
 

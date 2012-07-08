@@ -11,18 +11,23 @@
 
 package de.homac.Mirrored;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.webkit.WebView;
-
 import java.util.ArrayList;
+import java.util.List;
+
+import android.widget.Toast;
+import android.webkit.WebView;
+import android.view.MenuItem;
+import android.view.Menu;
+import android.view.KeyEvent;
+import android.view.Gravity;
+import android.util.Log;
+import android.util.DisplayMetrics;
+import android.text.Spanned;
+import android.text.Html;
+import android.os.Bundle;
+import android.net.Uri;
+import android.content.Intent;
+import android.app.Activity;
 
 public class ArticleViewer extends Activity {
 
@@ -37,7 +42,7 @@ public class ArticleViewer extends Activity {
     private WebView _webview;
     private String _content = "";
     private DisplayMetrics _dm;
-    private ArrayList<String> _articleHistory = new ArrayList<String>();
+    private List<String> _articleHistory = new ArrayList<String>();
 
     static final String BASE_URL = "http://m.spiegel.de/";
 
@@ -78,14 +83,28 @@ public class ArticleViewer extends Activity {
                 Log.d(TAG, "Screen orientation changed, redownloading article content");
             article.resetContent();
 //			article.getContent(_dm, _online);
-            app.screenOrientation = newOrientation;
-        }
+			app.screenOrientation = newOrientation;
+		}
+		// TODO: this is not good if article is already downloaded via selected option
+		if (article.getContent() == null || article.getContent().length() == 0) {
+			try {
+				_content = article.downloadContent(app.getBooleanPreference("PrefDownloadImages", true));
+			} catch (ArticleDownloadException e) {
+				Spanned text = Html.fromHtml(getString(R.string.article_download_error, e.getHttpCode()));
+				Toast toast = Toast.makeText(app.getBaseContext(), text, Toast.LENGTH_SHORT);
+				toast.setGravity(Gravity.TOP, 0, 0);
+				toast.show();
+				finish();
+			}
+		} else {
+			_content = article.getContent();
+		}
 
-        _content = article.getContent(_online);
         _articleHistory.add(_content);
         _webview.loadDataWithBaseURL(BASE_URL, _content, "text/html", "utf-8", null);
     }
 
+	/*
     /* On Android 2.1, canGoBack() always returns false when using loadDataWithBaseURL like above. In Android 2.2 it
       * works fine. To make sure it works for all versions, implement own history management with putting the
       * articles in a list and always calling loadData...() */
@@ -148,7 +167,6 @@ public class ArticleViewer extends Activity {
                 Article article = app.getArticle();
                 // get the content, just to be sure it has been downloaded, give false for internet state to
                 // make sure article is trimmed
-                article.getContent(false);
                 app.getFeedSaver().add(article);
                 if (!app.getFeedSaver().save(dm)) {
                     app.showDialog(this, getString(R.string.error_saving));

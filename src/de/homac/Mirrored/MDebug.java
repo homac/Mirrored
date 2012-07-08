@@ -1,5 +1,5 @@
 package de.homac.Mirrored;
 
 class MDebug {
-  static final boolean LOG = false;
+  static boolean LOG = false;
 }

@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParsePosition;
@@ -28,6 +29,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class Article extends Object {
 
@@ -43,10 +46,13 @@ class Article extends Object {
 
 	public Mirrored app;
 
+	private Pattern idPattern = Pattern.compile("a-([0-9]+).");
+
 	static private final String ARTICLE_URL = "http://m.spiegel.de/";
 	static private final String TAG = "Mirrored," + "Article";
 	private static final String TEASER = "<p id=\"spIntroTeaser\">";
 	private static final String CONTENT = "<div class=\"spArticleContent\"";
+	private static final String IMAGE = "<div class=\"spArticleImageBox";
 
 	public Article(Mirrored app) {
 		this.app = app;
@@ -102,25 +108,14 @@ class Article extends Object {
 		if (guid == null || guid.length() == 0) {
 			return null;
 		}
-
-		String id = "";
-		int start = url.toString().indexOf("-a-");
-		if (start == -1) {
-			if (MDebug.LOG)
-				Log.e(TAG, "Couldn't calculate article id");
-			return null;
+		Matcher matcher = idPattern.matcher(guid);
+		if (matcher .find() && matcher.groupCount() == 1) {
+			return matcher.group(1);
 		}
-
-		int end = url.toString().indexOf(".html");
-		id = url.toString().substring(start + 3, end);
-
-		if (MDebug.LOG)
-			Log.e(TAG, "Article id is " + id);
-
-		return id;
+		return null;
 	}
 
-	private String _downloadContent(boolean online, int page) {
+	private String _downloadContent(int page, boolean downloadImage) throws ArticleDownloadException {
 		StringBuilder sb = new StringBuilder();
 		try {
 
@@ -128,12 +123,23 @@ class Article extends Object {
 			if (MDebug.LOG)
 				Log.d(TAG, "Downloading " + url.toString());
 
-			InputStream is = url.openStream();
+			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+			urlConnection.setRequestMethod("GET");
+			urlConnection.connect();
+			int responseCode = urlConnection.getResponseCode();
+            if (responseCode != 200) {
+                Log.e(TAG, String.format("Could not download url '%s'. Errorcode is:  %s.", url, responseCode));
+                throw new ArticleDownloadException(responseCode);
+            }
 
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					is, "ISO-8859-1"), 8 * 1024);
+			Log.d(TAG, String.format("Response code is %s", responseCode));
+			InputStream is = urlConnection.getInputStream();
 
-			sb.append(getArticleContent(reader, page > 1));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(is, "ISO-8859-1"), 8 * 1024);
+            if (page == 0) {
+                sb.append("<html>");
+            }
+			sb.append(extractArticleContent(reader, page > 1, downloadImage));
 			String line;
 			boolean couldHasNext = false;
 			while ((line = reader.readLine()) != null) {
@@ -141,7 +147,7 @@ class Article extends Object {
 					couldHasNext = true;
 				} else if (couldHasNext && line.contains(">WEITER</a>")) {
 					Log.d(TAG, "Downloading next page");
-					sb.append(this.getContent(online, page + 1));
+					sb.append(this.downloadContent(page + 1, downloadImage));
 				}
 			}
 			is.close();
@@ -160,8 +166,7 @@ class Article extends Object {
 	}
 
 	public String getArticleUrl(int page) {
-		return ARTICLE_URL + _categories() + "/a-" + _id()
-				+ (page > 1 ? "-" + page : "") + ".html";
+		return ARTICLE_URL + _categories() + "/a-" + _id() + (page > 1 ? "-" + page : "") + ".html";
 	}
 
 	private String _categories() {
@@ -192,29 +197,37 @@ class Article extends Object {
 		return bitmap;
 	}
 
-	private String getArticleContent(BufferedReader reader, boolean skipTeaser)
+	private String extractArticleContent(BufferedReader reader, boolean skipTeaser, boolean downloadImage)
 			throws IOException {
 		StringBuilder text = new StringBuilder();
 		String line = null;
 		while ((line = reader.readLine()) != null && !(line.contains(CONTENT))) {
 			line = line.trim();
 			if (!skipTeaser) {
-				if (line.contains("<head>") || line.startsWith("<link")
-						|| line.contains("<meta")) {
+				if (line.contains("<head>") || line.startsWith("<link") || line.contains("<meta")) {
 					text.append(line);
 				}
 			}
 			continue;
 		}
-		text.append(line.substring(line.indexOf(CONTENT)));
+        boolean hasImage=false;
 
+        if(!skipTeaser){ //write body tag
+            text.append("<body>");
+        }
+		text.append(line.substring(line.indexOf(CONTENT)));
 		while (((line = reader.readLine()) != null) && !(line.contains(TEASER))) {
 			if (!skipTeaser) {
-				text.append(line);
+				if (!downloadImage && line.contains(IMAGE)) {
+                    hasImage=true;
+				}
+                if (!hasImage) {
+                    text.append(line);
+                }
 			}
 			continue;
 		}
-		text.append(line.substring(line.indexOf(TEASER)));
+        text.append(line.substring(line.indexOf(TEASER)));
 
 		int diffCount = 1;
 		while (((line = reader.readLine()) != null) && diffCount > 0) {
@@ -244,140 +257,35 @@ class Article extends Object {
 		return tagCount;
 	}
 
-	public void trimContent(boolean online) {
-		if (MDebug.LOG)
-			Log.d(TAG, "Trimming article content");
-
-		int start, end;
-
-		// cut everything starting with "Zum Thema" at the bottom of most
-		// articles...
-		start = content.indexOf("<div>Zum Thema:");
-		if (start != -1) {
-			end = content.indexOf("</div></div></div></body></html>");
-			content = content.substring(0, start - 1)
-					+ content.substring(end, content.length());
-		}
-		// cut everything until '<div class="text mode1"', mostly ads
-		start = content.indexOf("<p align=\"center\">");
-		if (start != -1) {
-			end = content.indexOf("</p>");
-			content = content.substring(0, start - 1)
-					+ content.substring(end + 4, content.length());
-		}
-		// //////////
-		start = content.indexOf("<strong>MEHR ");
-		if (start != -1) {
-			end = content.indexOf("</div></div></div></body></html>");
-			content = content.substring(0, start - 1)
-					+ content.substring(end, content.length());
-		}
-		// Multiple page articles, remove the links to next/prev page
-		start = content.indexOf("<strong>1</strong>");
-		if (start != -1) {
-			end = content.indexOf("</div></div></div></body></html>");
-			content = content.substring(0, start - 1)
-					+ content.substring(end, content.length());
-		}
-		start = content.indexOf("ZUR&#xdc;CK</span>");
-		if (start != -1) {
-			end = content.indexOf("</div></div></div></body></html>");
-			content = content.substring(0, start - 1)
-					+ content.substring(end, content.length());
-		}
-
-		// ////////////
-		// only do the following when not connected to the internet
-		if (!online) {
-			int i = 0;
-			while ((start = content.indexOf("<img")) != -1) {
-				end = content.indexOf('>', start);
-				content = content.substring(0, start - 1)
-						+ content.substring(end, content.length());
-				i++;
-			}
-			if (MDebug.LOG)
-				Log.d(TAG, "Replaced " + i + " occurences of <img...>");
-		}
-		// /////////////////////
-
-		// content = content.replaceAll("ddp", "");
-		content = content.replaceAll("FOTOSTRECKE", "");
-		content = content
-				.replaceAll(
-						"padding-top: .px;padding-bottom: .px;background-color: #ececec;",
-						"");
-		content = content.replaceAll(
-				"padding-top: 8px;background-color: #ececec;", "");
-		content = content.replaceAll("background-color: #ececec;", "");
-		content = content.replaceAll("Video abspielen", "");
-		content = content.replaceAll("separator mode1 ", "");
-		// content = content.replaceAll("global.css", "sss");
-		content = content
-				.replaceAll(
-						"border-color: #ececec;border-style: solid;border-width: ..px;",
-						"");
-
-		/* font substitutions */
-		int prefFontSize = app.getIntPreference("PrefFontSize", 6);
-		int newsize = 19 + (prefFontSize - 6);
-		int newsize_large = (int) ((22.0 / 19.0) * (double) newsize);
-		int newsize_large_large = (int) ((26.0 / 19.0) * (double) newsize);
-		int newsize_misc = (int) ((15.0 / 19.0) * (double) newsize);
-		if (MDebug.LOG)
-			Log.d(TAG, "Font sizes for this article: " + newsize + ", "
-					+ newsize_large + ", " + newsize_large_large + ", "
-					+ newsize_misc);
-
-		content = content.replaceAll("font-size:19px", "font-size:" + newsize
-				+ "px");
-		content = content.replaceAll("font-size:22px", "font-size:"
-				+ newsize_large + "px");
-		content = content.replaceAll("font-size:26px", "font-size:"
-				+ newsize_large_large + "px");
-		content = content.replaceAll("font-size:15px", "font-size:"
-				+ newsize_misc + "px");
-	}
-
-	public String getContent(boolean online, int page) {
+	public String downloadContent(int page, boolean downloadImage) throws ArticleDownloadException {
 		if (content != null && content.length() != 0) {
 			if (MDebug.LOG)
 				Log.d(TAG, "Article already has content, returning it");
 			return content;
 		} else {
 			if (MDebug.LOG)
-				Log.d(TAG,
-						"Article doesn't have content, downloading and returning it");
-			content = _downloadContent(online, page);
-			// trimContent(online);
-
+				Log.d(TAG, "Article doesn't have content, downloading and returning it");
+			content = _downloadContent(page, downloadImage);
 			return content;
 		}
 	}
 
-	public String getContent(boolean online) {
-		return getContent(online, 1);
+	public String downloadContent(boolean downloadImage) throws ArticleDownloadException {
+		return downloadContent(1, downloadImage);
 	}
 
-	public Bitmap getImage(boolean online) {
-		if (!online)
+    public String getContent() {
+        return content;
+    }
+
+	public Bitmap downloadThumbnailImage() {
+        if (image_url != null)
+       				image = _downloadImage();
+       			return image;
+    }
+
+	public Bitmap getThumbnailImage() {
 			return image;
-
-		if (image != null) {
-			if (MDebug.LOG)
-				Log.d(TAG, "Article already has image, returning it");
-
-			return image;
-		} else {
-			if (MDebug.LOG)
-				Log.d(TAG,
-						"Article doesn't have image, downloading and returning it");
-
-			if (image_url != null)
-				image = _downloadImage();
-
-			return image;
-		}
 	}
 
 	public void resetContent() {

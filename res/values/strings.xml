@@ -51,7 +51,12 @@
   <string name="preference_start_with_offline_mode_summary">Always start
   application in offline mode.</string>
 
-  <string name="preferences_category_misc">Misc</string>
+   <string name="preference_debug_mode_summary">Enable debug mode
+          to help the developer to find application errors</string>
+
+   <string name="preference_debug_mode">Debug mode</string>
+
+  <string name="preference_category_misc">Misc</string>
 
   <string name="preference_about_title">About</string>
   <string name="preference_about_dialog_title">@string/app_name</string>
@@ -68,4 +73,6 @@
   <string name="preference_font_size_title">Font Size</string>
   <string name="preference_font_size_summary">The font size for articles
   as a relative value from 0 to 10</string>
+    <string name="article_download_error" formatted="false">
+        Could not fetch article. &lt;br>  &lt;i>HTTP error code was: %d&lt;Id></string>
 </resources>
