@@ -15,12 +15,15 @@ package de.homac.Mirrored;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -32,7 +35,7 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Article extends Object {
+class Article {
 
 	public String title = "";
 	public String description = "";
@@ -44,8 +47,6 @@ class Article extends Object {
 	public String guid = "";
 	public String pubDate = "";
 
-	public Mirrored app;
-
 	private Pattern idPattern = Pattern.compile("a-([0-9]+).");
 
 	static private final String ARTICLE_URL = "http://m.spiegel.de/";
@@ -54,13 +55,11 @@ class Article extends Object {
 	private static final String CONTENT = "<div class=\"spArticleContent\"";
 	private static final String IMAGE = "<div class=\"spArticleImageBox";
 
-	public Article(Mirrored app) {
-		this.app = app;
+	public Article() {
 	}
 
-	public Article(Mirrored app, String urlString) {
+	public Article(String urlString) {
 		try {
-			this.app = app;
 			this.url = new URL(urlString);
 
 		} catch (MalformedURLException e) {
@@ -80,7 +79,6 @@ class Article extends Object {
 		image = a.image;
 		guid = a.guid;
 		pubDate = a.pubDate;
-		app = a.app;
 	}
 
 	public String dateString() {
@@ -292,4 +290,20 @@ class Article extends Object {
 		content = "";
 	}
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Article article = (Article) o;
+
+        if (!guid.equals(article.guid)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return guid.hashCode();
+    }
 }

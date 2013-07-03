@@ -8,7 +8,8 @@
   <string name="app_name">Mirrored</string>
   <string name="context_menu_delete">Delete</string>
   <string name="context_menu_save">Save</string>
-  <string name="progress_dialog_load">Loading articles. Please wait...</string>
+  <string name="progress_dialog_load">Loading article. Please wait...</string>
+  <string name="progress_dialog_load_all">Loading articles. Please wait...</string>
   <string name="progress_dialog_save_all">Saving articles. Please wait...</string>
   <string name="caption_offline">Offline</string>
     <string name="error_load_article">Could not load article</string>

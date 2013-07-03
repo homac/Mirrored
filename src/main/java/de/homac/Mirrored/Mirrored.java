@@ -13,9 +13,12 @@ package de.homac.Mirrored;
 
 import android.app.Application;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.content.Context;
 import android.text.Html;
@@ -36,35 +39,33 @@ public class Mirrored extends Application {
 
 	private String TAG;
 
-	private Article _article;
-	private FeedSaver _feedSaver;
+    private Article article;
+	private Feed offlineFeed;
 	private int _categoriesListCounter = 0;
 	private boolean _offline_mode = false;
 
-	public enum Orientation { HORIZONTAL, VERTICAL }
+    public enum Orientation { HORIZONTAL, VERTICAL }
 	public Orientation screenOrientation = null;
-
-	static public final String EXTRA_CATEGORY = "category";
 
 	static public final String BASE_CATEGORY = "schlagzeilen";
 
- 	public void setArticle(Article article) {
-		this._article = article;
-	}
+    public Article getArticle() {
+        return article;
+    }
 
-	public Article getArticle() {
-		return _article;
-	}
+    public void setArticle(Article article) {
+        this.article = article;
+    }
 
- 	public void setFeedSaver(FeedSaver feedSaver) {
-		this._feedSaver = feedSaver;
-	}
+    public Feed getOfflineFeed() {
+        return offlineFeed;
+    }
 
-	public FeedSaver getFeedSaver() {
-		return _feedSaver;
-	}
+    public void setOfflineFeed(Feed offlineFeed) {
+        this.offlineFeed = offlineFeed;
+    }
 
-	public void setCategoriesListCounter(int count) {
+    public void setCategoriesListCounter(int count) {
 		_categoriesListCounter = count;
 	}
 
@@ -188,4 +189,57 @@ public class Mirrored extends Application {
 				} });
 		alertDialog.show();
 	}
+
+    public void saveOfflineFeed(Context context, final Handler successHandler) {
+        if (FeedSaver.storageReady()) {
+            final ProgressDialog pdialog = ProgressDialog.show(context, "",
+                    getString(R.string.progress_dialog_save_all), true,
+                    false);
+
+            ArticleSaver saver = new ArticleSaver(new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    pdialog.dismiss();
+                    if (successHandler != null) {
+                        successHandler.sendEmptyMessage(0);
+                    }
+                }
+            });
+            saver.setFeed(offlineFeed);
+            saver.setDownloadImages(getBooleanPreference("PrefDownloadImages", true));
+            Thread thread = new Thread(saver);
+            thread.start();
+        } else {
+            showDialog(this, getString(R.string.error_saving));
+        }
+    }
+}
+
+class ArticleSaver implements Runnable {
+    private Handler handler;
+    private Feed feed;
+    private boolean downloadImages;
+
+    public ArticleSaver(Handler handler) {
+        this.handler = handler;
+    }
+
+    @Override
+    public void run() {
+        ArticleContentDownloader downloader = new ArticleContentDownloader(feed.getArticles(), true, downloadImages);
+        downloader.download();
+
+        FeedSaver saver = new FeedSaver(feed.getArticles());
+        saver.save();
+
+        handler.sendEmptyMessage(0);
+    }
+
+    public void setFeed(Feed feed) {
+        this.feed = feed;
+    }
+
+    public void setDownloadImages(boolean downloadImages) {
+        this.downloadImages = downloadImages;
+    }
 }

@@ -3,8 +3,8 @@
 	  package="de.homac.Mirrored"
 	  android:versionCode="9"
 	  android:versionName="0.2.3">
-  <uses-sdk android:minSdkVersion="3"
-	    android:targetSdkVersion="4" />
+  <uses-sdk android:minSdkVersion="9"
+	    android:targetSdkVersion="14" />
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
@@ -27,10 +27,8 @@
       </intent-filter>
     </activity>
 
-    <activity android:name=".CategoriesList"></activity>
-    <activity android:name=".ArticleViewer">
-      android:configChanges="orientation|keyboardHidden"
-    </activity>
-    <activity android:name=".Preferences"></activity>
+    <activity android:name=".CategoriesList" android:launchMode="singleTop" />
+    <activity android:name=".ArticleViewer" android:configChanges="orientation|keyboardHidden" />
+    <activity android:name=".Preferences" android:launchMode="singleTop" />
   </application>
 </manifest>

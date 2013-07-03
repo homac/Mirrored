@@ -30,8 +30,9 @@ import android.content.Intent;
 import android.app.Activity;
 
 public class ArticleViewer extends Activity {
+    public static final String EXTRA_ARTICLE = "article";
 
-    private String TAG;
+    private final String TAG = "ArticleViewer";
     private Mirrored app;
 
     static final int MENU_SAVE_ARTICLE = 0;
@@ -40,16 +41,14 @@ public class ArticleViewer extends Activity {
 
     private boolean _online;
     private WebView _webview;
-    private String _content = "";
     private DisplayMetrics _dm;
-    private List<String> _articleHistory = new ArrayList<String>();
+    private Article article;
 
     static final String BASE_URL = "http://m.spiegel.de/";
 
     @Override
     protected void onCreate(Bundle icicle) {
         app = (Mirrored) getApplication();
-        TAG = app.APP_NAME + ", " + "ArticleViewer";
 
         super.onCreate(icicle);
 
@@ -61,7 +60,7 @@ public class ArticleViewer extends Activity {
 
         _webview = (WebView) findViewById(R.id.webview);
 
-        Article article = app.getArticle();
+        article = app.getArticle();
         if (MDebug.LOG)
             Log.d(TAG, "Received article from application with title: " + article.title);
 
@@ -85,57 +84,17 @@ public class ArticleViewer extends Activity {
 //			article.getContent(_dm, _online);
 			app.screenOrientation = newOrientation;
 		}
-		// TODO: this is not good if article is already downloaded via selected option
-		if (article.getContent() == null || article.getContent().length() == 0) {
-			try {
-				_content = article.downloadContent(app.getBooleanPreference("PrefDownloadImages", true));
-			} catch (ArticleDownloadException e) {
-				Spanned text = Html.fromHtml(getString(R.string.article_download_error, e.getHttpCode()));
-				Toast toast = Toast.makeText(app.getBaseContext(), text, Toast.LENGTH_SHORT);
-				toast.setGravity(Gravity.TOP, 0, 0);
-				toast.show();
-				finish();
-			}
-		} else {
-			_content = article.getContent();
-		}
 
-        _articleHistory.add(_content);
-        _webview.loadDataWithBaseURL(BASE_URL, _content, "text/html", "utf-8", null);
+        _webview.loadDataWithBaseURL(BASE_URL, article.getContent(), "text/html", "utf-8", null);
     }
 
-	/*
-    /* On Android 2.1, canGoBack() always returns false when using loadDataWithBaseURL like above. In Android 2.2 it
-      * works fine. To make sure it works for all versions, implement own history management with putting the
-      * articles in a list and always calling loadData...() */
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (MDebug.LOG)
-            Log.d(TAG, "onKeyDown(), but canGoBack? " + _webview.canGoBack());
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            int size = _articleHistory.size();
-            if (MDebug.LOG)
-                Log.d(TAG, "_articleHistory has " + size + " elements");
-
-            if (size == 1) {
-                // remove original article, then go back to ArticlesList
-                _articleHistory.remove(size - 1);
-                return super.onKeyDown(keyCode, event);
-            } else {
-                // remove currently viewed content
-                _articleHistory.remove(size - 1);
-                // get the previous history item
-                String content = _articleHistory.get(_articleHistory.size() - 1);
-                if (MDebug.LOG)
-                    Log.d(TAG, "Loading history item: " + content);
-                _webview.loadDataWithBaseURL(BASE_URL, content,
-                        "text/html", "utf-8", null);
-            }
-
-            return true;
+    public void onBackPressed() {
+        if (_webview.canGoBack()) {
+            _webview.goBack();
+        } else {
+            super.onBackPressed();
         }
-
-        return super.onKeyDown(keyCode, event);
     }
 
     @Override
@@ -161,23 +120,19 @@ public class ArticleViewer extends Activity {
                 if (MDebug.LOG)
                     Log.d(TAG, "MENU_SAVE_ARTICLE clicked");
 
-                DisplayMetrics dm = new DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(dm);
-
-                Article article = app.getArticle();
                 // get the content, just to be sure it has been downloaded, give false for internet state to
                 // make sure article is trimmed
-                app.getFeedSaver().add(article);
-                if (!app.getFeedSaver().save(dm)) {
-                    app.showDialog(this, getString(R.string.error_saving));
+                if (!app.getOfflineFeed().getArticles().contains(article)) {
+                    app.getOfflineFeed().getArticles().add(article);
                 }
+                app.saveOfflineFeed(this, null);
                 return true;
 
             case MENU_EXTERNAL_BROWSER:
                 if (MDebug.LOG) {
                     Log.d(TAG, "MENU_EXTERNAL_BROWSER clicked");
                 }
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(app.getArticle().getArticleUrl(0)));
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(article.getArticleUrl(0)));
                 startActivity(intent);
                 return true;
 

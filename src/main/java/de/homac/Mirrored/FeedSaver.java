@@ -16,59 +16,29 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import android.util.Log;
 import android.util.DisplayMetrics;
 import android.os.Environment;
 
-public class FeedSaver extends Object {
+public class FeedSaver {
 
 	static public final String SAVE_DIR = "/Android/data/de.homac.Mirrored/";
 
-	private Feed _feed;
+	private Collection<Article> articles;
 
-	private Mirrored app;
-
-	static private String TAG;
+	static private String TAG = "FeedSaver";
 
 	static private final String FILENAME = "articles.xml";
 
-	ArrayList<Article> _articles = new ArrayList();
-
-	public FeedSaver(Mirrored app, Feed feed, DisplayMetrics dm) {
-		this._feed = feed;
-		this.app = app;
-		TAG = app.APP_NAME + ", " + "FeedSaver";
-
-		ArrayList<Article> existing_articles = _feed.getArticles();
-		if (existing_articles == null) {
-			if (MDebug.LOG)
-				Log.d(TAG, "No existing articles");
-			return;
-		}
-		// add already existing articles
-		for (Article article : existing_articles)
-			_articles.add(article);
+	public FeedSaver(Collection<Article> articles) {
+		this.articles = articles;
 	}
 
-	public void add(Article article) {
-		if (MDebug.LOG)
-			Log.d(TAG, "Adding article with title: " + article.title);
-		_articles.add(article);
-	}
-
-	public void remove(Article article) {
-		if (MDebug.LOG)
-			Log.d(TAG, "Removing article with title: " + article.title);
-
-		int index = _articles.indexOf(article);
-
-		_articles.remove(index);
-	}
-
-	public boolean save(DisplayMetrics dm) {
+	public boolean save() {
 		FileOutputStream fos = null;
-		BufferedWriter out;
 		String dirname = Environment.getExternalStorageDirectory().getAbsolutePath() + SAVE_DIR;
 		File directory = new File(dirname);
 
@@ -100,9 +70,9 @@ public class FeedSaver extends Object {
 			fos = new FileOutputStream(f);
 
 			fos.write(_startXML().getBytes());
-			if (_articles != null)
-				for (Article article : _articles) {
-					fos.write(_articleXML(article, dm).getBytes());
+			if (articles != null)
+				for (Article article : articles) {
+					fos.write(_articleXML(article).getBytes());
 				}
 			fos.write(_finishXML().getBytes());
 
@@ -122,10 +92,6 @@ public class FeedSaver extends Object {
 		}
 
 		return true;
-	}
-
-	public void clear() {
-		_articles.clear();
 	}
 
 	static public File read() {
@@ -153,7 +119,7 @@ public class FeedSaver extends Object {
 		return o;
 	}
 
-	private String _articleXML(Article article, DisplayMetrics dm) {
+	private String _articleXML(Article article) {
 		String o = "";
 
 		o += "\n";
@@ -181,7 +147,7 @@ public class FeedSaver extends Object {
 		return end;
 	}
 
-	public boolean storageReady() {
+	public static boolean storageReady() {
 		String state = Environment.getExternalStorageState();
 
 		if (Environment.MEDIA_MOUNTED.equals(state))

@@ -8,7 +8,8 @@
   <string name="app_name">Gespiegelt</string>
   <string name="context_menu_delete">Löschen</string>
   <string name="context_menu_save">Speichern</string>
-  <string name="progress_dialog_load">Artikel werden geladen. Bitte warten...</string>
+  <string name="progress_dialog_load">Artikel wird geladen. Bitte warten...</string>
+  <string name="progress_dialog_load_all">Artikel werden geladen. Bitte warten...</string>
   <string name="progress_dialog_save_all">Artikel werden gespeichert. Bitte warten...</string>
    <string name="error_load_article">Artikel konnte nicht geladen werden</string>
   <string name="caption_offline">Offline</string>

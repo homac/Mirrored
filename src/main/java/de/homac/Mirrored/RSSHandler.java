@@ -29,12 +29,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class RSSHandler extends DefaultHandler {
 
 	// feed variables
-	protected Mirrored app;
-	protected String TAG;
+	protected final String TAG = "RSSHandler";
 
 	// Feed and Article objects to use for temporary storage
 	private Article _currentArticle;
@@ -43,15 +43,13 @@ public class RSSHandler extends DefaultHandler {
 	private StringBuffer stringBuffer;
 	private String feedCategory;
 
-	public RSSHandler(Mirrored m, URL url, boolean online) {
+	public RSSHandler(URL url, boolean online) {
 		stringBuffer = new StringBuffer();
 		// InputStream i = null;
 		feedCategory = feedCategory(url);
 		InputSource is = null;
 
-		app = m;
-		TAG = app.APP_NAME + ", " + "RSSHandler";
-		_currentArticle = new Article(app);
+		_currentArticle = new Article();
 		// fetch and parse required feed content
 		try {
 			if (MDebug.LOG) {
@@ -62,7 +60,7 @@ public class RSSHandler extends DefaultHandler {
 			XMLReader tReader = tParser.getXMLReader();
 			tReader.setContentHandler(this);
 			if (online) {
-				String feedString = app.convertStreamToString(url.openStream());
+				String feedString = Mirrored.convertStreamToString(url.openStream());
 				tParser.parse(new ByteArrayInputStream(feedString.getBytes()),
 						this);
 			} else {
@@ -96,7 +94,7 @@ public class RSSHandler extends DefaultHandler {
 	public void startElement(String uri, String name, String qName,
 			Attributes atts) {
 		if (name.trim().equals("item")) {
-			_currentArticle = new Article(app);
+			_currentArticle = new Article();
 		} else if (name.trim().equals("enclosure")) {
 			for (int i = 0; i < atts.getLength(); i++) {
 				try {
@@ -172,14 +170,14 @@ public class RSSHandler extends DefaultHandler {
 		stringBuffer.append(ch, start, length);
 	}
 
-	public ArrayList getArticles() {
+	public List<Article> getArticles() {
 		return _articles;
 	}
 
 	public String feedCategory(URL pFeedurl) {
 		String[] tSplit = pFeedurl.toString().split("/");
 		if (tSplit.length != 5)
-			return app.BASE_CATEGORY;
+			return Mirrored.BASE_CATEGORY;
 		return tSplit[3];
 	}
 }
