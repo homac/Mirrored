@@ -14,9 +14,11 @@ package de.homac.Mirrored.view;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -70,9 +72,25 @@ public class CategoriesList extends ListActivity {
 		setListAdapter(notes);
 
         setTitle(getString(R.string.title_select_category));
+
+        initActionBar();
 	}
 
-	@Override
+    private void initActionBar() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            getActionBar().setHomeButtonEnabled(true);
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        setResult(RESULT_CANCELED);
+        finish();
+        return true;
+    }
+
+    @Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
 

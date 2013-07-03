@@ -11,27 +11,35 @@
 
 package de.homac.Mirrored.view;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-import android.content.Context;
-import android.text.Spanned;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.*;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.*;
-import android.util.Log;
-import android.util.DisplayMetrics;
-import android.text.Html;
-import android.os.Message;
-import android.os.Handler;
-import android.os.Bundle;
-import android.content.res.Configuration;
-import android.content.Intent;
-import android.app.ProgressDialog;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.res.Configuration;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.text.Html;
+import android.text.Spanned;
+import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.net.URL;
+import java.util.List;
 
 import de.homac.Mirrored.R;
 import de.homac.Mirrored.common.MDebug;
@@ -45,13 +53,6 @@ import de.homac.Mirrored.provider.SpiegelOnlineDownloader;
 public class ArticlesList extends ListActivity {
 	static final int CONTEXT_MENU_DELETE_ID = 0;
 	static final int CONTEXT_MENU_SAVE_ID = 1;
-	static final int MENU_CATEGORIES = 0;
-	static final int MENU_PREFERENCES = 1;
-	static final int MENU_SAVE_ALL = 2;
-	static final int MENU_DELETE_ALL = 3;
-	static final int MENU_OFFLINE_MODE = 4;
-	static final int MENU_ONLINE_MODE = 5;
-	static final int MENU_REFRESH = 6;
     static final int REQ_PICK_CATEGORY = 0;
 
 	private boolean _internetReady;
@@ -116,6 +117,9 @@ public class ArticlesList extends ListActivity {
 
     private void refresh() {
         _internetReady = app.online();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            invalidateOptionsMenu();
+        }
 
         final ProgressDialog pdialog = ProgressDialog.show(this, "",
                 getString(R.string.progress_dialog_load_all), true, false);
@@ -154,34 +158,14 @@ public class ArticlesList extends ListActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
-
-		menu.add(Menu.NONE, MENU_CATEGORIES, Menu.NONE,
-				R.string.menu_categories).setIcon(
-				android.R.drawable.ic_menu_more);
-		menu.add(Menu.NONE, MENU_PREFERENCES, Menu.NONE,
-				R.string.menu_preferences).setIcon(
-				android.R.drawable.ic_menu_preferences);
-
-		if (_internetReady) {
-			menu.add(Menu.NONE, MENU_OFFLINE_MODE, Menu.NONE,
-					R.string.menu_offline_mode).setIcon(
-					android.R.drawable.ic_menu_close_clear_cancel);
-			menu.add(Menu.NONE, MENU_REFRESH, Menu.NONE, R.string.menu_refresh)
-					.setIcon(R.drawable.ic_menu_refresh);
-			menu.add(Menu.NONE, MENU_SAVE_ALL, Menu.NONE,
-					R.string.menu_save_all).setIcon(
-					android.R.drawable.ic_menu_save);
-		} else {
-			menu.add(Menu.NONE, MENU_ONLINE_MODE, Menu.NONE,
-					R.string.menu_online_mode).setIcon(
-					android.R.drawable.ic_menu_upload);
-			if (app.getOfflineFeed().getArticles().size() > 0)
-				menu.add(Menu.NONE, MENU_DELETE_ALL, Menu.NONE,
-						R.string.menu_delete_all).setIcon(
-						android.R.drawable.ic_menu_delete);
+		getMenuInflater().inflate(R.menu.articles_list, menu);
+		return true;
 	}
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.setGroupVisible(R.id.group_online, _internetReady);
+        menu.setGroupVisible(R.id.group_offline, !_internetReady);
         return true;
     }
 
@@ -189,7 +173,7 @@ public class ArticlesList extends ListActivity {
 		Intent intent;
 
 		switch (item.getItemId()) {
-			case MENU_CATEGORIES :
+			case R.id.menu_categories:
 				if (MDebug.LOG)
 					Log.d(TAG, "MENU_CATEGORIES clicked");
 
@@ -200,7 +184,7 @@ public class ArticlesList extends ListActivity {
 
 				return true;
 
-			case MENU_PREFERENCES :
+			case R.id.menu_preferences:
 				if (MDebug.LOG)
 					Log.d(TAG, "MENU_PREFERENCES clicked");
 
@@ -212,7 +196,7 @@ public class ArticlesList extends ListActivity {
 				startActivity(intent);
 
 				return true;
-			case MENU_SAVE_ALL :
+			case R.id.menu_saveAll:
 				if (MDebug.LOG)
 					Log.d(TAG, "MENU_SAVE_ALL clicked");
 
@@ -223,7 +207,7 @@ public class ArticlesList extends ListActivity {
 
 				return true;
 
-			case MENU_DELETE_ALL :
+			case R.id.menu_deleteAll:
 				if (MDebug.LOG)
 					Log.d(TAG, "MENU_DELETE_ALL clicked");
 
@@ -237,7 +221,7 @@ public class ArticlesList extends ListActivity {
 
 				return true;
 
-			case MENU_OFFLINE_MODE :
+			case R.id.menu_offlineMode:
 				if (MDebug.LOG)
 					Log.d(TAG, "MENU_OFFLINE_MODE clicked");
 
@@ -246,7 +230,7 @@ public class ArticlesList extends ListActivity {
 
 				return true;
 
-			case MENU_ONLINE_MODE :
+			case R.id.menu_onlineMode:
 				if (MDebug.LOG)
 					Log.d(TAG, "MENU_ONLINE_MODE clicked");
 
@@ -261,7 +245,7 @@ public class ArticlesList extends ListActivity {
 
 				return true;
 
-			case MENU_REFRESH :
+			case R.id.menu_refresh:
 				if (MDebug.LOG)
 					Log.d(TAG, "MENU_REFRESH clicked");
 

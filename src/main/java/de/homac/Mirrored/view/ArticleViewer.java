@@ -11,24 +11,21 @@
 
 package de.homac.Mirrored.view;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import android.webkit.WebViewClient;
-import android.widget.Toast;
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.webkit.WebView;
 import android.view.MenuItem;
 import android.view.Menu;
-import android.view.KeyEvent;
-import android.view.Gravity;
 import android.util.Log;
 import android.util.DisplayMetrics;
-import android.text.Spanned;
-import android.text.Html;
 import android.os.Bundle;
 import android.net.Uri;
 import android.content.Intent;
 import android.app.Activity;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import de.homac.Mirrored.common.MDebug;
 import de.homac.Mirrored.common.Mirrored;
@@ -40,10 +37,6 @@ public class ArticleViewer extends Activity {
 
     private final String TAG = "ArticleViewer";
     private Mirrored app;
-
-    static final int MENU_SAVE_ARTICLE = 0;
-    static final int MENU_EXTERNAL_BROWSER = 1;
-    static final int MENU_BACK_TO_ARTICLES_LIST = 2;
 
     private boolean _online;
     private WebView _webview;
@@ -91,7 +84,20 @@ public class ArticleViewer extends Activity {
 			app.screenOrientation = newOrientation;
 		}
 
-        _webview.loadDataWithBaseURL(BASE_URL, article.getContent(), "text/html", "utf-8", null);
+        _webview.loadDataWithBaseURL(getBaseUrl(article.getUrl()), article.getContent(), "text/html", "utf-8", article.getUrl().toString());
+
+        initActionBar();
+    }
+
+    private void initActionBar() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            getActionBar().setHomeButtonEnabled(true);
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    private String getBaseUrl(URL url) {
+        return url.toString().substring(0, url.toString().lastIndexOf('/')+1);
     }
 
     @Override
@@ -105,24 +111,21 @@ public class ArticleViewer extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-
-        if (_online) {
-            menu.add(Menu.NONE, MENU_SAVE_ARTICLE, Menu.NONE, R.string.menu_save_article)
-                    .setIcon(android.R.drawable.ic_menu_save);
-            menu.add(Menu.NONE, MENU_EXTERNAL_BROWSER, Menu.NONE, R.string.menu_external_browser)
-                    .setIcon(android.R.drawable.ic_menu_view);
-            menu.add(Menu.NONE, MENU_BACK_TO_ARTICLES_LIST, Menu.NONE,
-                    R.string.menu_back_to_articles_list).setIcon(R.drawable.ic_menu_back);
-        }
-
+        getMenuInflater().inflate(R.menu.article_viewer, menu);
         return true;
     }
 
-    public boolean onOptionsItemSelected(MenuItem item) {
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.setGroupVisible(R.id.group_online, _online);
+        menu.setGroupVisible(R.id.group_legacy, Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB);
+        return _online;
+    }
 
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
         switch (item.getItemId()) {
-            case MENU_SAVE_ARTICLE:
+            case R.id.menu_saveArticle:
                 if (MDebug.LOG)
                     Log.d(TAG, "MENU_SAVE_ARTICLE clicked");
 
@@ -134,18 +137,20 @@ public class ArticleViewer extends Activity {
                 app.saveOfflineFeed(this, null);
                 return true;
 
-            case MENU_EXTERNAL_BROWSER:
+            case R.id.menu_externalBrowser:
                 if (MDebug.LOG) {
                     Log.d(TAG, "MENU_EXTERNAL_BROWSER clicked");
                 }
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(article.getUrl().toString()));
+                intent = new Intent(Intent.ACTION_VIEW, Uri.parse(article.getUrl().toString()));
                 startActivity(intent);
                 return true;
 
-            case MENU_BACK_TO_ARTICLES_LIST:
+            case android.R.id.home:
+            case R.id.menu_home:
                 if (MDebug.LOG)
                     Log.d(TAG, "MENU_BACK_TO_ARTICLES_LIST clicked");
-                this.finish();
+                finish();
+                return true;
         }
         return false;
     }

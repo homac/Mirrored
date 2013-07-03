@@ -11,11 +11,11 @@
 
 package de.homac.Mirrored.view;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import java.io.IOException;
+import android.view.MenuItem;
 
 import de.homac.Mirrored.common.MDebug;
 import de.homac.Mirrored.common.Mirrored;
@@ -33,9 +33,24 @@ public class Preferences extends PreferenceActivity {
 
 		super.onCreate(icicle);
 		addPreferencesFromResource(R.xml.preferences);
+
+        initActionBar();
 	}
 
-	@Override
+    private void initActionBar() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            getActionBar().setHomeButtonEnabled(true);
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        finish();
+        return true;
+    }
+
+    @Override
 	protected void onStop() {
 		super.onStop();
 

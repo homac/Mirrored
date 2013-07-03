@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/group_online">
+        <item android:id="@+id/menu_saveArticle"
+              android:icon="@android:drawable/ic_menu_save"
+              android:title="@string/menu_save_article" />
+        <item android:id="@+id/menu_externalBrowser"
+              android:icon="@android:drawable/ic_menu_view"
+              android:title="@string/menu_external_browser" />
+    </group>
+    <group android:id="@+id/group_legacy">
+        <item android:id="@+id/menu_home"
+              android:icon="@drawable/ic_menu_back"
+              android:title="@string/menu_back_to_articles_list" />
+    </group>
+</menu>
