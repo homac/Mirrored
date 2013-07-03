@@ -11,32 +11,15 @@
  *
  */
 
-package de.homac.Mirrored;
+package de.homac.Mirrored.model;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.util.Log;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Serializable;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-class Article {
+public class Article {
     static private final String TAG = "Mirrored," + "Article";
 
 	private String title = "";
@@ -49,75 +32,75 @@ class Article {
     private String guid = "";
     private Date pubDate = null;
 
-    String getTitle() {
+    public String getTitle() {
         return title;
     }
 
-    void setTitle(String title) {
+    public void setTitle(String title) {
         this.title = title;
     }
 
-    String getDescription() {
+    public String getDescription() {
         return description;
     }
 
-    void setDescription(String description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 
-    URL getUrl() {
+    public URL getUrl() {
         return url;
     }
 
-    void setUrl(URL url) {
+    public void setUrl(URL url) {
         this.url = url;
     }
 
-    URL getThumbnailImageUrl() {
+    public URL getThumbnailImageUrl() {
         return thumbnailImageUrl;
     }
 
-    void setThumbnailImageUrl(URL thumbnailImageUrl) {
+    public void setThumbnailImageUrl(URL thumbnailImageUrl) {
         this.thumbnailImageUrl = thumbnailImageUrl;
     }
 
-    Bitmap getThumbnailImage() {
+    public Bitmap getThumbnailImage() {
         return thumbnailImage;
     }
 
-    void setThumbnailImage(Bitmap thumbnailImage) {
+    public void setThumbnailImage(Bitmap thumbnailImage) {
         this.thumbnailImage = thumbnailImage;
     }
 
-    String getContent() {
+    public String getContent() {
         return content;
     }
 
-    void setContent(String content) {
+    public void setContent(String content) {
         this.content = content;
     }
 
-    String getFeedCategory() {
+    public String getFeedCategory() {
         return feedCategory;
     }
 
-    void setFeedCategory(String feedCategory) {
+    public void setFeedCategory(String feedCategory) {
         this.feedCategory = feedCategory;
     }
 
-    String getGuid() {
+    public String getGuid() {
         return guid;
     }
 
-    void setGuid(String guid) {
+    public void setGuid(String guid) {
         this.guid = guid;
     }
 
-    Date getPubDate() {
+    public Date getPubDate() {
         return pubDate;
     }
 
-    void setPubDate(Date pubDate) {
+    public void setPubDate(Date pubDate) {
         this.pubDate = pubDate;
     }
 

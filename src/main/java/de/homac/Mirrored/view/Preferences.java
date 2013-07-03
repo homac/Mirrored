@@ -9,13 +9,17 @@
  *
  */
 
-package de.homac.Mirrored;
+package de.homac.Mirrored.view;
 
 import android.os.Bundle;
 import android.util.Log;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import java.io.IOException;
+
+import de.homac.Mirrored.common.MDebug;
+import de.homac.Mirrored.common.Mirrored;
+import de.homac.Mirrored.R;
 
 public class Preferences extends PreferenceActivity {
 

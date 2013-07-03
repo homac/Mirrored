@@ -9,7 +9,7 @@
  *
  */
 
-package de.homac.Mirrored;
+package de.homac.Mirrored.view;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -32,6 +32,15 @@ import android.content.res.Configuration;
 import android.content.Intent;
 import android.app.ProgressDialog;
 import android.app.ListActivity;
+
+import de.homac.Mirrored.R;
+import de.homac.Mirrored.common.MDebug;
+import de.homac.Mirrored.common.Mirrored;
+import de.homac.Mirrored.feed.ArticleContentDownloader;
+import de.homac.Mirrored.feed.ArticleDownloadException;
+import de.homac.Mirrored.feed.Feed;
+import de.homac.Mirrored.model.Article;
+import de.homac.Mirrored.provider.SpiegelOnlineDownloader;
 
 public class ArticlesList extends ListActivity {
 	static final int CONTEXT_MENU_DELETE_ID = 0;
@@ -171,12 +180,12 @@ public class ArticlesList extends ListActivity {
 				menu.add(Menu.NONE, MENU_DELETE_ALL, Menu.NONE,
 						R.string.menu_delete_all).setIcon(
 						android.R.drawable.ic_menu_delete);
-		}
-
-		return true;
 	}
 
-	public boolean onOptionsItemSelected(MenuItem item) {
+        return true;
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
 		Intent intent;
 
 		switch (item.getItemId()) {

@@ -9,11 +9,10 @@
  *
  */
 
-package de.homac.Mirrored;
+package de.homac.Mirrored.feed;
 
 import android.util.Log;
 import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
@@ -33,6 +32,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+
+import de.homac.Mirrored.common.Mirrored;
+import de.homac.Mirrored.common.MDebug;
+import de.homac.Mirrored.model.Article;
 
 public class RSSHandler extends DefaultHandler {
     public static final DateFormat RSS822_DATE = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");

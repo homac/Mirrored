@@ -9,7 +9,7 @@
  *
  */
 
-package de.homac.Mirrored;
+package de.homac.Mirrored.view;
 
 import android.app.ListActivity;
 import android.content.Intent;
@@ -23,6 +23,10 @@ import android.widget.ListView;
 
 import java.util.Arrays;
 import java.util.Comparator;
+
+import de.homac.Mirrored.common.MDebug;
+import de.homac.Mirrored.common.Mirrored;
+import de.homac.Mirrored.R;
 
 public class CategoriesList extends ListActivity {
     public static final String EXTRA_CATEGORY = "category";

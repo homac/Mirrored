@@ -15,7 +15,7 @@
      android:smallScreens="true"
      android:anyDensity="false" />
 
-  <application android:name="Mirrored" android:label="@string/app_name"
+  <application android:name="de.homac.Mirrored.common.Mirrored" android:label="@string/app_name"
 	       android:icon="@drawable/mirrored"
 	       android:theme="@android:style/Theme.Light">
     <activity android:name=".ArticlesList"
@@ -27,8 +27,8 @@
       </intent-filter>
     </activity>
 
-    <activity android:name=".CategoriesList" android:launchMode="singleTop" />
-    <activity android:name=".ArticleViewer" android:configChanges="orientation|keyboardHidden" />
-    <activity android:name=".Preferences" android:launchMode="singleTop" />
+    <activity android:name="de.homac.Mirrored.view.CategoriesList" android:launchMode="singleTop" />
+    <activity android:name="de.homac.Mirrored.view.ArticleViewer" android:configChanges="orientation|keyboardHidden" />
+    <activity android:name="de.homac.Mirrored.view.Preferences" android:label="@string/menu_preferences" android:launchMode="singleTop" />
   </application>
 </manifest>

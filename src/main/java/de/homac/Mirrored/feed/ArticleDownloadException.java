@@ -1,4 +1,4 @@
-package de.homac.Mirrored;
+package de.homac.Mirrored.feed;
 
 /**
  * <!--

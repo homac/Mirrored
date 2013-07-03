@@ -9,12 +9,16 @@
  *
  */
 
-package de.homac.Mirrored;
+package de.homac.Mirrored.feed;
 
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import de.homac.Mirrored.common.MDebug;
+import de.homac.Mirrored.model.Article;
+import de.homac.Mirrored.provider.SpiegelOnlineDownloader;
 
 public class ArticleContentDownloader {
 

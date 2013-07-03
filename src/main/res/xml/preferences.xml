@@ -47,7 +47,7 @@
       android:summary="@string/preference_debug_mode_summary"
       android:key="PrefEnableDebug" />
 
-    <de.homac.Mirrored.DialogExPreference
+    <de.homac.Mirrored.view.DialogExPreference
        android:key="PrefAboutDialog"
        android:title="@string/preference_about_title"
        android:dialogTitle="@string/preference_about_dialog_title"

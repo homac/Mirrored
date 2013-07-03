@@ -9,31 +9,31 @@
  *
  */
 
-package de.homac.Mirrored;
+package de.homac.Mirrored.feed;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import android.util.Log;
-import android.util.DisplayMetrics;
 import android.os.Environment;
+
+import de.homac.Mirrored.common.MDebug;
+import de.homac.Mirrored.model.Article;
 
 public class FeedSaver {
 
 	static public final String SAVE_DIR = "/Android/data/de.homac.Mirrored/";
 
-	private Collection<Article> articles;
+	private List<Article> articles;
 
 	static private String TAG = "FeedSaver";
 
 	static private final String FILENAME = "articles.xml";
 
-	public FeedSaver(Collection<Article> articles) {
+	public FeedSaver(List<Article> articles) {
 		this.articles = articles;
 	}
 

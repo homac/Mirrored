@@ -9,7 +9,7 @@
  *
  */
 
-package de.homac.Mirrored;
+package de.homac.Mirrored.view;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +29,11 @@ import android.os.Bundle;
 import android.net.Uri;
 import android.content.Intent;
 import android.app.Activity;
+
+import de.homac.Mirrored.common.MDebug;
+import de.homac.Mirrored.common.Mirrored;
+import de.homac.Mirrored.R;
+import de.homac.Mirrored.model.Article;
 
 public class ArticleViewer extends Activity {
     public static final String EXTRA_ARTICLE = "article";

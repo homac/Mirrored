@@ -9,10 +9,9 @@
  *
  */
 
-package de.homac.Mirrored;
+package de.homac.Mirrored.common;
 
 import android.app.Application;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -27,11 +26,16 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 
 import java.io.InputStream;
-import java.io.StringReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.StringBuilder;
+
+import de.homac.Mirrored.feed.ArticleContentDownloader;
+import de.homac.Mirrored.feed.Feed;
+import de.homac.Mirrored.feed.FeedSaver;
+import de.homac.Mirrored.R;
+import de.homac.Mirrored.model.Article;
 
 public class Mirrored extends Application {
 

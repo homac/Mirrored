@@ -9,15 +9,16 @@
  *
  */
 
-package de.homac.Mirrored;
-
-import android.util.Log;
+package de.homac.Mirrored.feed;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-class Feed extends RSSHandler {
+import de.homac.Mirrored.common.Mirrored;
+import de.homac.Mirrored.model.Article;
+
+public class Feed extends RSSHandler {
 
 	public Feed(URL url, boolean online, String feedCategory) {
 		super(url, online, feedCategory);

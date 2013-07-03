@@ -1,4 +1,4 @@
-package de.homac.Mirrored;
+package de.homac.Mirrored.provider;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,6 +11,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import de.homac.Mirrored.feed.ArticleDownloadException;
+import de.homac.Mirrored.common.MDebug;
+import de.homac.Mirrored.model.Article;
 
 public class SpiegelOnlineDownloader {
     private static final String TAG = "SpiegelOnlineDownloader";
