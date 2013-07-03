@@ -42,6 +42,7 @@ import java.net.URL;
 import java.util.List;
 
 import de.homac.Mirrored.R;
+import de.homac.Mirrored.common.Helper;
 import de.homac.Mirrored.common.MDebug;
 import de.homac.Mirrored.common.Mirrored;
 import de.homac.Mirrored.feed.ArticleContentDownloader;
@@ -88,7 +89,7 @@ public class ArticlesList extends ListActivity {
     }
 
     private void initCategory() {
-        String category = app.getStringPreference("PrefStartWithCategory", null);
+        String category = app.getPreferences().getString("PrefStartWithCategory", null);
         if (category != null && category.length() != 0) {
             if (MDebug.LOG)
                 Log.d(TAG, "Got feedCategory from preferences: " + category);
@@ -106,7 +107,7 @@ public class ArticlesList extends ListActivity {
         String title = category.substring(0, 1).toUpperCase() + category.substring(1);
         if (!_internetReady) {
             title += " (" + getString(R.string.caption_offline) + ")";
-            if (!app.getBooleanPreference("PrefStartWithOfflineMode", false)) {
+            if (!app.getPreferences().getBoolean("PrefStartWithOfflineMode", false)) {
                 Toast.makeText(getApplicationContext(),
                         R.string.switch_to_offline_mode, Toast.LENGTH_LONG)
                         .show();
@@ -135,13 +136,13 @@ public class ArticlesList extends ListActivity {
                 pdialog.dismiss();
 
                 if (articles.size() == 0)
-                    app.showDialog(ArticlesList.this, getString(R.string.no_articles));
+                    Helper.showDialog(ArticlesList.this, getString(R.string.no_articles));
             }
         });
         loader.setCategory(category);
         loader.setInternetReady(_internetReady);
-        loader.setDownloadAllArticles(app.getBooleanPreference("PrefDownloadAllArticles", false));
-        loader.setDownloadImages(app.getBooleanPreference("PrefDownloadImages", true));
+        loader.setDownloadAllArticles(app.getPreferences().getBoolean("PrefDownloadAllArticles", false));
+        loader.setDownloadImages(app.getPreferences().getBoolean("PrefDownloadImages", true));
 
         Thread thread = new Thread(loader);
         thread.start();
@@ -237,8 +238,8 @@ public class ArticlesList extends ListActivity {
 				app.setOfflineMode(false);
 
 				if (!app.online())
-					app.showDialog(this,
-							getString(R.string.please_check_internet));
+					Helper.showDialog(this,
+                            getString(R.string.please_check_internet));
 				else {
 					refresh();
 				}
@@ -365,7 +366,7 @@ public class ArticlesList extends ListActivity {
                     }
                 }
             }, article);
-            loader.setDownloadImages(app.getBooleanPreference("PrefDownloadImages", true));
+            loader.setDownloadImages(app.getPreferences().getBoolean("PrefDownloadImages", true));
 
             Thread thread = new Thread(loader);
             thread.start();

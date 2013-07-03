@@ -20,8 +20,6 @@ import java.text.DateFormat;
 import java.util.Date;
 
 public class Article {
-    static private final String TAG = "Mirrored," + "Article";
-
 	private String title = "";
     private String description = "";
     private URL url;

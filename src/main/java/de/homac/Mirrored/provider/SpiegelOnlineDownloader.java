@@ -83,10 +83,10 @@ public class SpiegelOnlineDownloader {
             is.close();
         } catch (MalformedURLException e) {
             if (MDebug.LOG)
-                Log.e("Mirrored", e.toString());
+                Log.e(TAG, e.toString());
         } catch (IOException e) {
             if (MDebug.LOG)
-                Log.e("Mirrored", e.toString());
+                Log.e(TAG, e.toString());
         }
         if (page == 1) {
             sb.append("</body></html>");

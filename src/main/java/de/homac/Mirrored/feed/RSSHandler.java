@@ -33,7 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.homac.Mirrored.common.Mirrored;
+import de.homac.Mirrored.common.Helper;
 import de.homac.Mirrored.common.MDebug;
 import de.homac.Mirrored.model.Article;
 
@@ -65,7 +65,7 @@ public class RSSHandler extends DefaultHandler {
 			XMLReader tReader = tParser.getXMLReader();
 			tReader.setContentHandler(this);
 			if (online) {
-				String feedString = Mirrored.convertStreamToString(url.openStream());
+				String feedString = Helper.convertStreamToString(url.openStream());
 				tParser.parse(new ByteArrayInputStream(feedString.getBytes()),
 						this);
 			} else {
