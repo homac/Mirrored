@@ -28,10 +28,14 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RSSHandler extends DefaultHandler {
+    public static final DateFormat RSS822_DATE = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
 
 	// feed variables
 	protected final String TAG = "RSSHandler";
@@ -43,11 +47,9 @@ public class RSSHandler extends DefaultHandler {
 	private StringBuffer stringBuffer;
 	private String feedCategory;
 
-	public RSSHandler(URL url, boolean online) {
+	public RSSHandler(URL url, boolean online, String feedCategory) {
 		stringBuffer = new StringBuffer();
-		// InputStream i = null;
-		feedCategory = feedCategory(url);
-		InputSource is = null;
+		this.feedCategory = feedCategory;
 
 		_currentArticle = new Article();
 		// fetch and parse required feed content
@@ -101,7 +103,7 @@ public class RSSHandler extends DefaultHandler {
 					String n = atts.getLocalName(i);
 					String v = atts.getValue(i);
 					if (n.equals("url")) {
-						_currentArticle.image_url = new URL(v);
+						_currentArticle.setThumbnailImageUrl(new URL(v));
 					}
 				} catch (MalformedURLException e) {
 					if (MDebug.LOG)
@@ -115,50 +117,48 @@ public class RSSHandler extends DefaultHandler {
 			throws SAXException {
 		String tString = stringBuffer.toString().trim();
 		if (name.trim().equals("title")) {
-			_currentArticle.title = tString;
+			_currentArticle.setTitle(tString);
 		} else if (name.trim().equals("link")) {
 			try {
-				_currentArticle.url = new URL(tString);
+				_currentArticle.setUrl(new URL(tString));
 			} catch (MalformedURLException e) {
 				if (MDebug.LOG) {
 					Log.e(TAG, e.toString());
 				}
 			}
 		} else if (name.trim().equals("description")) {
-			_currentArticle.description = tString;
+			_currentArticle.setDescription(tString);
 		} else if (name.trim().equals("content")) {
-			_currentArticle.content = tString;
+			_currentArticle.setContent(tString);
 		} else if (name.trim().equals("category")) {
-			_currentArticle.feedCategory = tString.toLowerCase();
+			_currentArticle.setFeedCategory(tString.toLowerCase());
 		} else if (name.trim().equals("guid")) {
-			_currentArticle.guid = tString;
+			_currentArticle.setGuid(tString);
 		} else if (name.trim().equals("pubDate")) {
-			_currentArticle.pubDate = tString;
-		} else if (name.trim().equals("item")) {
+            try {
+                _currentArticle.setPubDate(RSS822_DATE.parse(tString));
+            } catch (ParseException e) {
+            }
+        } else if (name.trim().equals("item")) {
 			// Subfeeds e.g. netzwelt oder kultur have no category tag, so
 			// calculate it from url
-			if (_currentArticle.feedCategory == null
-					|| _currentArticle.feedCategory.length() == 0) {
-				Log.w(TAG, "category of " + _currentArticle.title
+			if (_currentArticle.getFeedCategory() == null
+					|| _currentArticle.getFeedCategory().length() == 0) {
+				Log.w(TAG, "category of " + _currentArticle.getTitle()
 						+ " ist empty");
-				_currentArticle.feedCategory = feedCategory;
+				_currentArticle.setFeedCategory(feedCategory);
 			}
 			// feedCategory;
 			// Check if looking for article, and if article is complete
-			if (_currentArticle.url != null
-					&& _currentArticle.title.length() > 0
-					&& _currentArticle.description.length() > 0) {
-				// ugly hack: We currently don't support
-				// "Fotostrecke and Videos:", so don't add article if it is one
-				if (_currentArticle.url != null
-						&& !_currentArticle.url.toString().contains(
-								"/fotostrecke/")
-						&& !_currentArticle.url.toString().contains("/video/")) {
-					_articles.add(_currentArticle);
-				}
-				if (MDebug.LOG) {
-					Log.d(TAG, "SAX, added article with title: "
-							+ _currentArticle.title);
+			if (_currentArticle.getUrl() != null
+					&& _currentArticle.getTitle().length() > 0
+					&& _currentArticle.getDescription().length() > 0) {
+				if (_currentArticle.getUrl() != null) {
+                    addArticle(_currentArticle);
+                    if (MDebug.LOG) {
+                        Log.d(TAG, "SAX, added article with title: "
+                                + _currentArticle.getTitle());
+                    }
 				}
 				_currentArticle = null;
 			}
@@ -166,18 +166,15 @@ public class RSSHandler extends DefaultHandler {
 		stringBuffer = new StringBuffer();
 	}
 
-	public void characters(char ch[], int start, int length) {
+    protected void addArticle(Article currentArticle) {
+        _articles.add(_currentArticle);
+    }
+
+    public void characters(char ch[], int start, int length) {
 		stringBuffer.append(ch, start, length);
 	}
 
 	public List<Article> getArticles() {
 		return _articles;
-	}
-
-	public String feedCategory(URL pFeedurl) {
-		String[] tSplit = pFeedurl.toString().split("/");
-		if (tSplit.length != 5)
-			return Mirrored.BASE_CATEGORY;
-		return tSplit[3];
 	}
 }

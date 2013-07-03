@@ -14,7 +14,6 @@ package de.homac.Mirrored;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class ArticleContentDownloader {
@@ -37,7 +36,7 @@ public class ArticleContentDownloader {
 	public void download() {
 		ArrayList<Thread> threads = new ArrayList<Thread>();
 		for (Article article : articles) {
-			Thread thread = new Thread(new ArticleDownloadThread(article));
+			Thread thread = new Thread(new ArticleDownloadThread(article, downloadContent, downloadImages));
 			thread.start();
 			threads.add(thread);
 		}
@@ -52,28 +51,36 @@ public class ArticleContentDownloader {
 				Log.e(TAG, e.toString());
 		}
 	}
-
-	private class ArticleDownloadThread implements Runnable {
-
-		private Article article;
-
-		public ArticleDownloadThread(Article article) {
-			this.article = article;
-		}
-
-		public void run() {
-			try {
-				if (downloadContent) {
-				    article.downloadContent(downloadImages);
-                }
-                if (downloadImages) {
-                    article.downloadThumbnailImage();
-                }
-            } catch (ArticleDownloadException e) {
-				Log.e(TAG,
-						String.format("Could not fetch article '%s', statuscode was %s", article.getArticleUrl(0),
-								e.getHttpCode()));
-			}
-		}
-	}
 }
+
+class ArticleDownloadThread implements Runnable {
+    private final String TAG = "ArticleDownloadThread";
+
+    private Article article;
+    private boolean downloadContent;
+    private boolean downloadImages;
+
+    public ArticleDownloadThread(Article article, boolean downloadContent, boolean downloadImages) {
+        this.article = article;
+        this.downloadContent = downloadContent;
+        this.downloadImages = downloadImages;
+    }
+
+    public void run() {
+        SpiegelOnlineDownloader downloader = new SpiegelOnlineDownloader(article);
+        try {
+            if (downloadContent) {
+                downloader.downloadContent(downloadImages);
+            }
+            if (downloadImages) {
+                downloader.downloadThumbnailImage();
+            }
+        } catch (ArticleDownloadException e) {
+            Log.e(TAG,
+                    String.format("Could not fetch article '%s', statuscode was %s", article.getUrl(),
+                            e.getHttpCode()));
+        }
+    }
+
+}
+

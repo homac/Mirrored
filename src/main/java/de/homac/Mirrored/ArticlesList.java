@@ -299,7 +299,7 @@ public class ArticlesList extends ListActivity {
 					Log.d(TAG, "CONTEXT_MENU_DELETE_ID clicked");
 
 				if (MDebug.LOG)
-					Log.d(TAG, "Removing article with title: " + article.title);
+					Log.d(TAG, "Removing article with title: " + article.getTitle());
 
 				app.getOfflineFeed().getArticles().remove(article);
 				// remove deleted row
@@ -428,10 +428,10 @@ class IconicAdapter extends ArrayAdapter<Article> {
         TextView description = (TextView) row
                 .findViewById(R.id.article_description);
 
-        headline.setText(article.title);
+        headline.setText(article.getTitle());
         image.setImageBitmap(article.getThumbnailImage());
-        description.setText(Html.fromHtml(article.description));
-        date.setText(article.dateString());
+        description.setText(Html.fromHtml(article.getDescription()));
+        date.setText(article.pubDateString());
 
         return row;
     }
@@ -449,8 +449,9 @@ class SingleArticleLoader implements Runnable {
 
     @Override
     public void run() {
+        SpiegelOnlineDownloader downloader = new SpiegelOnlineDownloader(article);
         try {
-            article.downloadContent(downloadImages);
+            downloader.downloadContent(downloadImages);
             handler.sendEmptyMessage(0);
         } catch (ArticleDownloadException e) {
             Message msg = new Message();
@@ -468,11 +469,6 @@ class SingleArticleLoader implements Runnable {
 class ArticleLoader implements Runnable {
     private static final String TAG = "ArticleLoader";
 
-    // static final String BASE_FEED =
-    // "http://www.spiegel.de/schlagzeilen/index.rss";
-    static final String FEED_PREFIX = "http://www.spiegel.de/";
-    static final String FEED_SUFFIX = "/index.rss";
-
     private Handler handler;
     private boolean internetReady;
     private String category;
@@ -486,13 +482,13 @@ class ArticleLoader implements Runnable {
     }
 
     public void run() {
-        URL url = getFeedUrl(category);
+        URL url = SpiegelOnlineDownloader.getFeedUrl(category);
         // first thread run, run only once
-        feed = new Feed(url, internetReady);
+        feed = new Feed(url, internetReady, category);
 
         if (internetReady) {
             // get offline feed also if online
-            offlineFeed = new Feed(url, false);
+            offlineFeed = new Feed(url, false, category);
             if (MDebug.LOG)
                 Log.d(TAG, "Offline feed has " + offlineFeed.getArticles().size() + " articles");
 
@@ -514,16 +510,6 @@ class ArticleLoader implements Runnable {
         ArticleContentDownloader downloader = new ArticleContentDownloader(articles,
                 downloadAllArticles, downloadImages && internetReady);
         downloader.download();
-    }
-
-    private URL getFeedUrl(String category) {
-        try {
-            return new URL(FEED_PREFIX + category + FEED_SUFFIX);
-        } catch (MalformedURLException e) {
-            if (MDebug.LOG)
-                Log.e(TAG, e.toString());
-            throw new RuntimeException(e);
-        }
     }
 
     public Feed getFeed() {

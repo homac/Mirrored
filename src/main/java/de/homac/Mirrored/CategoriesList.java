@@ -65,6 +65,7 @@ public class CategoriesList extends ListActivity {
 		notes.sort(STRING_COMPARATOR);
 		setListAdapter(notes);
 
+        setTitle(getString(R.string.title_select_category));
 	}
 
 	@Override

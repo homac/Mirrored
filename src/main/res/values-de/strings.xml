@@ -11,15 +11,9 @@
   <string name="progress_dialog_load">Artikel wird geladen. Bitte warten...</string>
   <string name="progress_dialog_load_all">Artikel werden geladen. Bitte warten...</string>
   <string name="progress_dialog_save_all">Artikel werden gespeichert. Bitte warten...</string>
-   <string name="error_load_article">Artikel konnte nicht geladen werden</string>
   <string name="caption_offline">Offline</string>
   <string name="no_articles">Keine Artikel verfügbar</string>
   <string name="switch_to_offline_mode">Offline-Modus gestartet</string>
-  <string name="please_check_internet">Bitte Internetverbindung
-  überprüfen und erneut versuchen.</string>
-  <string name="error_saving">Fehler beim Zugriff auf die
-  SD-Karte. Bitte stellen Sie sicher, dass die SD-Karte funktionsfähig
-  ist und versuchen Sie es erneut.</string>
   <string name="menu_categories">Kategorien</string>
   <string name="menu_preferences">Einstellungen</string>
   <string name="menu_save_all">Alle speichern</string>
@@ -32,6 +26,8 @@
   <string name="menu_online_mode">Online-Modus</string>
   <string name="menu_refresh">Neu laden</string>
   <string name="menu_back_to_articles_list">Zurück zur Übersicht</string>
+  <string name="title_select_category">Kategorie wählen</string>
+
   <string name="preferences_category_behaviour">Verhalten</string>
   <string name="preferences_category_visual">Erscheinungsbild</string>
   <string name="preference_start_with_category">Kategorie beim Start</string>
@@ -75,6 +71,13 @@
   <string name="preference_font_size_title">Schriftgröße</string>
   <string name="preference_font_size_summary">Die Schriftgröße für
   Artikel als ein relativer Wert von 0 bis 10</string>
+
+    <string name="error_load_article">Artikel konnte nicht geladen werden</string>
+    <string name="please_check_internet">Bitte Internetverbindung
+        überprüfen und erneut versuchen.</string>
+    <string name="error_saving">Fehler beim Zugriff auf die
+        SD-Karte. Bitte stellen Sie sicher, dass die SD-Karte funktionsfähig
+        ist und versuchen Sie es erneut.</string>
     <string name="article_download_error"  formatted="false">
         Konnte Artikel nicht herunteladen.&lt;br> &lt;i>HTTP Fehlercode war: %d&lt;Id></string>
 </resources>

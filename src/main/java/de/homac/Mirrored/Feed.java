@@ -19,8 +19,8 @@ import java.util.List;
 
 class Feed extends RSSHandler {
 
-	public Feed(URL url, boolean online) {
-		super(url, online);
+	public Feed(URL url, boolean online, String feedCategory) {
+		super(url, online, feedCategory);
 	}
 
 	// only return those articles with a specific feedCategory
@@ -32,9 +32,19 @@ class Feed extends RSSHandler {
 			return all_articles;
 
 		for (Article article : all_articles)
-			if (article.feedCategory.equals(category))
+			if (article.getFeedCategory().equals(category))
 				articles.add(article);
 
 		return articles;
 	}
+
+    @Override
+    protected void addArticle(Article currentArticle) {
+        // ugly hack: We currently don't support
+        // "Fotostrecke and Videos:", so don't add article if it is one
+        if (!currentArticle.getUrl().toString().contains("/fotostrecke/")
+                && !currentArticle.getUrl().toString().contains("/video/")) {
+            super.addArticle(currentArticle);
+        }
+    }
 }

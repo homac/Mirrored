@@ -14,6 +14,7 @@ package de.homac.Mirrored;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 import android.webkit.WebView;
 import android.view.MenuItem;
@@ -62,14 +63,14 @@ public class ArticleViewer extends Activity {
 
         article = app.getArticle();
         if (MDebug.LOG)
-            Log.d(TAG, "Received article from application with title: " + article.title);
+            Log.d(TAG, "Received article from application with title: " + article.getTitle());
 
         /* Add some debugging */
-        if (article.title == null)
+        if (article.getTitle() == null)
             Log.d(TAG, "Article title is null");
 
-        if (article.title != null)
-            setTitle(article.title);
+        if (article.getTitle() != null)
+            setTitle(article.getTitle());
         _dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(_dm);
 
@@ -132,7 +133,7 @@ public class ArticleViewer extends Activity {
                 if (MDebug.LOG) {
                     Log.d(TAG, "MENU_EXTERNAL_BROWSER clicked");
                 }
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(article.getArticleUrl(0)));
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(article.getUrl().toString()));
                 startActivity(intent);
                 return true;
 

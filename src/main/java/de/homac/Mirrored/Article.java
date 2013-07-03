@@ -27,6 +27,7 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DateFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,254 +37,97 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class Article {
+    static private final String TAG = "Mirrored," + "Article";
 
-	public String title = "";
-	public String description = "";
-	public URL image_url;
-	public Bitmap image = null;
-	public URL url;
-	public String content = "";
-	public String feedCategory = "";
-	public String guid = "";
-	public String pubDate = "";
+	private String title = "";
+    private String description = "";
+    private URL url;
+    private URL thumbnailImageUrl;
+    private Bitmap thumbnailImage = null;
+    private String content = "";
+    private String feedCategory = "";
+    private String guid = "";
+    private Date pubDate = null;
 
-	private Pattern idPattern = Pattern.compile("a-([0-9]+).");
+    String getTitle() {
+        return title;
+    }
 
-	static private final String ARTICLE_URL = "http://m.spiegel.de/";
-	static private final String TAG = "Mirrored," + "Article";
-	private static final String TEASER = "<p id=\"spIntroTeaser\">";
-	private static final String CONTENT = "<div class=\"spArticleContent\"";
-	private static final String IMAGE = "<div class=\"spArticleImageBox";
+    void setTitle(String title) {
+        this.title = title;
+    }
 
-	public Article() {
-	}
+    String getDescription() {
+        return description;
+    }
 
-	public Article(String urlString) {
-		try {
-			this.url = new URL(urlString);
+    void setDescription(String description) {
+        this.description = description;
+    }
 
-		} catch (MalformedURLException e) {
-			if (MDebug.LOG)
-				Log.e("Mirrored", e.toString());
-		}
+    URL getUrl() {
+        return url;
+    }
 
-	}
+    void setUrl(URL url) {
+        this.url = url;
+    }
 
-	public Article(Article a) {
-		title = a.title;
-		url = a.url;
-		image_url = a.image_url;
-		description = a.description;
-		content = a.content;
-		feedCategory = a.feedCategory;
-		image = a.image;
-		guid = a.guid;
-		pubDate = a.pubDate;
-	}
+    URL getThumbnailImageUrl() {
+        return thumbnailImageUrl;
+    }
 
-	public String dateString() {
-		if (pubDate == null || pubDate.length() == 0) {
-			return null;
-		}
+    void setThumbnailImageUrl(URL thumbnailImageUrl) {
+        this.thumbnailImageUrl = thumbnailImageUrl;
+    }
 
-		if (MDebug.LOG)
-			Log.d(TAG, "dateString()");
+    Bitmap getThumbnailImage() {
+        return thumbnailImage;
+    }
 
-		SimpleDateFormat format = new SimpleDateFormat(
-					       "EEE, dd MMM yyyy HH:mm:ss +0200", Locale.ENGLISH);
-		format.setTimeZone(TimeZone.getDefault());
+    void setThumbnailImage(Bitmap thumbnailImage) {
+        this.thumbnailImage = thumbnailImage;
+    }
 
-		Date d = format.parse(pubDate, new ParsePosition(0));
-		if (d == null)
-			return "";
-
-		SimpleDateFormat format2 = new SimpleDateFormat("d. MMMM yyyy, HH:mm",
-								Locale.getDefault());
-		return format2.format(d);
-	}
-
-	private String _id() {
-		if (guid == null || guid.length() == 0) {
-			return null;
-		}
-		Matcher matcher = idPattern.matcher(guid);
-		if (matcher .find() && matcher.groupCount() == 1) {
-			return matcher.group(1);
-		}
-		return null;
-	}
-
-	private String _downloadContent(int page, boolean downloadImage) throws ArticleDownloadException {
-		StringBuilder sb = new StringBuilder();
-		try {
-
-			URL url = new URL(getArticleUrl(page));
-			if (MDebug.LOG)
-				Log.d(TAG, "Downloading " + url.toString());
-
-			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-			urlConnection.setRequestMethod("GET");
-			urlConnection.connect();
-			int responseCode = urlConnection.getResponseCode();
-            if (responseCode != 200) {
-                Log.e(TAG, String.format("Could not download url '%s'. Errorcode is:  %s.", url, responseCode));
-                throw new ArticleDownloadException(responseCode);
-            }
-
-			Log.d(TAG, String.format("Response code is %s", responseCode));
-			InputStream is = urlConnection.getInputStream();
-
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is, "ISO-8859-1"), 8 * 1024);
-            if (page == 0) {
-                sb.append("<html>");
-            }
-			sb.append(extractArticleContent(reader, page > 1, downloadImage));
-			String line;
-			boolean couldHasNext = false;
-			while ((line = reader.readLine()) != null) {
-				if (line.contains("<li class=\"spMultiPagerLink\">")) {
-					couldHasNext = true;
-				} else if (couldHasNext && line.contains(">WEITER</a>")) {
-					Log.d(TAG, "Downloading next page");
-					sb.append(this.downloadContent(page + 1, downloadImage));
-				}
-			}
-			is.close();
-		} catch (MalformedURLException e) {
-			if (MDebug.LOG)
-				Log.e("Mirrored", e.toString());
-		} catch (IOException e) {
-			if (MDebug.LOG)
-				Log.e("Mirrored", e.toString());
-		}
-		if (page == 1) {
-			sb.append("</body></html>");
-		}
-
-		return sb.toString();
-	}
-
-	public String getArticleUrl(int page) {
-		return ARTICLE_URL + _categories() + "/a-" + _id() + (page > 1 ? "-" + page : "") + ".html";
-	}
-
-	private String _categories() {
-		if (guid == null || guid.length() == 0) {
-			return "";
-		}
-		String split[] = guid.toString().split("/");
-		if (split.length == 6) {
-			return split[3] + "/" + split[4];
-		} else if (split.length == 5) {
-			return split[3];
-		}
-		if (MDebug.LOG)
-			Log.e(TAG, "Couldn't calculate category");
-		return "";
-	}
-
-	private Bitmap _downloadImage() {
-		Bitmap bitmap = null;
-
-		try {
-			bitmap = BitmapFactory.decodeStream(image_url.openStream());
-		} catch (IOException e) {
-			if (MDebug.LOG)
-				Log.e(TAG, e.toString());
-		}
-
-		return bitmap;
-	}
-
-	private String extractArticleContent(BufferedReader reader, boolean skipTeaser, boolean downloadImage)
-			throws IOException {
-		StringBuilder text = new StringBuilder();
-		String line = null;
-		while ((line = reader.readLine()) != null && !(line.contains(CONTENT))) {
-			line = line.trim();
-			if (!skipTeaser) {
-				if (line.contains("<head>") || line.startsWith("<link") || line.contains("<meta")) {
-					text.append(line);
-				}
-			}
-			continue;
-		}
-        boolean hasImage=false;
-
-        if(!skipTeaser){ //write body tag
-            text.append("<body>");
-        }
-		text.append(line.substring(line.indexOf(CONTENT)));
-		while (((line = reader.readLine()) != null) && !(line.contains(TEASER))) {
-			if (!skipTeaser) {
-				if (!downloadImage && line.contains(IMAGE)) {
-                    hasImage=true;
-				}
-                if (!hasImage) {
-                    text.append(line);
-                }
-			}
-			continue;
-		}
-        text.append(line.substring(line.indexOf(TEASER)));
-
-		int diffCount = 1;
-		while (((line = reader.readLine()) != null) && diffCount > 0) {
-			diffCount -= countTag(line, "</div>");
-			if (diffCount == 1) {
-				// skip inner diffs -> fotostrecke, etc
-				text.append(line);
-			}
-			if (diffCount > 0) {
-				diffCount += countTag(line, "<div");
-			}
-		}
-		if (line.contains("</div>")) {
-			text.append(line.substring(0, line.lastIndexOf("</div>")));
-		}
-		text.append("</div>");
-		return text.toString();
-	}
-
-	private int countTag(String line, String tag) {
-		int tagCount = 0;
-		String tLine = line.trim();
-		while (tLine.length() > 0 && tLine.contains(tag)) {
-			tagCount++;
-			tLine = tLine.substring(tLine.indexOf(tag) + tag.length());
-		}
-		return tagCount;
-	}
-
-	public String downloadContent(int page, boolean downloadImage) throws ArticleDownloadException {
-		if (content != null && content.length() != 0) {
-			if (MDebug.LOG)
-				Log.d(TAG, "Article already has content, returning it");
-			return content;
-		} else {
-			if (MDebug.LOG)
-				Log.d(TAG, "Article doesn't have content, downloading and returning it");
-			content = _downloadContent(page, downloadImage);
-			return content;
-		}
-	}
-
-	public String downloadContent(boolean downloadImage) throws ArticleDownloadException {
-		return downloadContent(1, downloadImage);
-	}
-
-    public String getContent() {
+    String getContent() {
         return content;
     }
 
-	public Bitmap downloadThumbnailImage() {
-        if (image_url != null)
-       				image = _downloadImage();
-       			return image;
+    void setContent(String content) {
+        this.content = content;
     }
 
-	public Bitmap getThumbnailImage() {
-			return image;
+    String getFeedCategory() {
+        return feedCategory;
+    }
+
+    void setFeedCategory(String feedCategory) {
+        this.feedCategory = feedCategory;
+    }
+
+    String getGuid() {
+        return guid;
+    }
+
+    void setGuid(String guid) {
+        this.guid = guid;
+    }
+
+    Date getPubDate() {
+        return pubDate;
+    }
+
+    void setPubDate(Date pubDate) {
+        this.pubDate = pubDate;
+    }
+
+    public String pubDateString() {
+		if (pubDate == null) {
+			return "";
+		}
+
+        DateFormat format = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
+		return format.format(pubDate);
 	}
 
 	public void resetContent() {

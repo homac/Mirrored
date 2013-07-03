@@ -124,15 +124,18 @@ public class FeedSaver {
 
 		o += "\n";
 		o += " <item>\n";
-		o += "  <title>" + article.title + "</title>\n";
-		o += "  <guid>" + article.guid + "</guid>\n";
-		o += "  <link>" + article.url.toString() + "</link>\n";
-		o += "  <description>" + article.description + "</description>\n";
+		o += "  <title>" + article.getTitle() + "</title>\n";
+		o += "  <guid>" + article.getGuid() + "</guid>\n";
+		o += "  <link>" + article.getUrl().toString() + "</link>\n";
+		o += "  <description>" + article.getDescription() + "</description>\n";
 
-		if (article.feedCategory == null)
-			article.feedCategory = "";
+		if (article.getFeedCategory() == null)
+			article.setFeedCategory("");
 
-		o += "  <category>" + article.feedCategory + "</category>\n";
+		o += "  <category>" + article.getFeedCategory() + "</category>\n";
+        if (article.getPubDate() != null) {
+            o += "  <pubDate>" + RSSHandler.RSS822_DATE.format(article.getPubDate()) + "</pubDate>\n";
+        }
 
 		o += "  <content><![CDATA[" + article.getContent() + "]]></content>\n";
 		o += " </item>\n";

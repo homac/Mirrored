@@ -12,13 +12,8 @@
   <string name="progress_dialog_load_all">Loading articles. Please wait...</string>
   <string name="progress_dialog_save_all">Saving articles. Please wait...</string>
   <string name="caption_offline">Offline</string>
-    <string name="error_load_article">Could not load article</string>
   <string name="no_articles">No articles available</string>
   <string name="switch_to_offline_mode">Switched to offline mode</string>
-  <string name="please_check_internet">Please check your internet
-  connection and try again.</string>
-  <string name="error_saving">Something went wrong while accessing the
-  SD card, please make sure it is ready and try again.</string>
   <string name="menu_categories">Categories</string>
   <string name="menu_preferences">Preferences</string>
   <string name="menu_save_all">Save all</string>
@@ -31,6 +26,8 @@
   <string name="menu_online_mode">Online mode</string>
   <string name="menu_refresh">Refresh</string>
   <string name="menu_back_to_articles_list">Back to overview</string>
+  <string name="title_select_category">Select category</string>
+
   <string name="preferences_category_behaviour">Behaviour</string>
   <string name="preferences_category_visual">Visual</string>
   <string name="preference_start_with_category">Category to start with</string>
@@ -74,6 +71,12 @@
   <string name="preference_font_size_title">Font Size</string>
   <string name="preference_font_size_summary">The font size for articles
   as a relative value from 0 to 10</string>
+
+    <string name="error_load_article">Could not load article</string>
+    <string name="please_check_internet">Please check your internet
+        connection and try again.</string>
+    <string name="error_saving">Something went wrong while accessing the
+        SD card, please make sure it is ready and try again.</string>
     <string name="article_download_error" formatted="false">
         Could not fetch article. &lt;br>  &lt;i>HTTP error code was: %d&lt;Id></string>
 </resources>

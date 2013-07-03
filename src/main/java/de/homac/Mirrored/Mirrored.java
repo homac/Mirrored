@@ -41,7 +41,6 @@ public class Mirrored extends Application {
 
     private Article article;
 	private Feed offlineFeed;
-	private int _categoriesListCounter = 0;
 	private boolean _offline_mode = false;
 
     public enum Orientation { HORIZONTAL, VERTICAL }
@@ -64,14 +63,6 @@ public class Mirrored extends Application {
     public void setOfflineFeed(Feed offlineFeed) {
         this.offlineFeed = offlineFeed;
     }
-
-    public void setCategoriesListCounter(int count) {
-		_categoriesListCounter = count;
-	}
-
-	public int getCategoriesListCounter() {
-		return _categoriesListCounter;
-	}
 
 	@Override
 	public void onCreate() {
