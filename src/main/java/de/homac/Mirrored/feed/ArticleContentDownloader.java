@@ -38,9 +38,15 @@ public class ArticleContentDownloader {
 	}
 
 	public void download() {
+        if (MDebug.LOG)
+            Log.d(TAG, "Loading " + articles.size() + " articles; downloadContent = " + downloadContent + ", downloadImages = " + downloadImages);
 		ArrayList<Thread> threads = new ArrayList<Thread>();
 		for (Article article : articles) {
-			Thread thread = new Thread(new ArticleDownloadThread(article, downloadContent, downloadImages));
+            ArticleDownloadThread loader = new ArticleDownloadThread(article, null);
+            loader.setDownloadImages(downloadImages);
+            loader.setDownloadContent(downloadContent);
+
+			Thread thread = new Thread(loader);
 			thread.start();
 			threads.add(thread);
 		}
@@ -56,35 +62,3 @@ public class ArticleContentDownloader {
 		}
 	}
 }
-
-class ArticleDownloadThread implements Runnable {
-    private final String TAG = "ArticleDownloadThread";
-
-    private Article article;
-    private boolean downloadContent;
-    private boolean downloadImages;
-
-    public ArticleDownloadThread(Article article, boolean downloadContent, boolean downloadImages) {
-        this.article = article;
-        this.downloadContent = downloadContent;
-        this.downloadImages = downloadImages;
-    }
-
-    public void run() {
-        SpiegelOnlineDownloader downloader = new SpiegelOnlineDownloader(article);
-        try {
-            if (downloadContent) {
-                downloader.downloadContent(downloadImages);
-            }
-            if (downloadImages) {
-                downloader.downloadThumbnailImage();
-            }
-        } catch (ArticleDownloadException e) {
-            Log.e(TAG,
-                    String.format("Could not fetch article '%s', statuscode was %s", article.getUrl(),
-                            e.getHttpCode()));
-        }
-    }
-
-}
-

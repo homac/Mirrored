@@ -46,7 +46,7 @@ import de.homac.Mirrored.common.Helper;
 import de.homac.Mirrored.common.MDebug;
 import de.homac.Mirrored.common.Mirrored;
 import de.homac.Mirrored.feed.ArticleContentDownloader;
-import de.homac.Mirrored.feed.ArticleDownloadException;
+import de.homac.Mirrored.feed.ArticleDownloadThread;
 import de.homac.Mirrored.feed.Feed;
 import de.homac.Mirrored.model.Article;
 import de.homac.Mirrored.provider.SpiegelOnlineDownloader;
@@ -351,7 +351,7 @@ public class ArticlesList extends ListActivity {
             final ProgressDialog pdialog = ProgressDialog.show(this, "",
                     getString(R.string.progress_dialog_load), true, false);
 
-            SingleArticleLoader loader = new SingleArticleLoader(new Handler() {
+            ArticleDownloadThread loader = new ArticleDownloadThread(article, new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
                     pdialog.dismiss();
@@ -365,7 +365,8 @@ public class ArticlesList extends ListActivity {
                         toast.show();
                     }
                 }
-            }, article);
+            });
+            loader.setDownloadContent(true);
             loader.setDownloadImages(app.getPreferences().getBoolean("PrefDownloadImages", true));
 
             Thread thread = new Thread(loader);
@@ -428,35 +429,6 @@ class IconicAdapter extends ArrayAdapter<Article> {
         date.setText(article.pubDateString());
 
         return row;
-    }
-}
-
-class SingleArticleLoader implements Runnable {
-    private Handler handler;
-    private Article article;
-    private boolean downloadImages;
-
-    public SingleArticleLoader(Handler handler, Article article) {
-        this.handler = handler;
-        this.article = article;
-    }
-
-    @Override
-    public void run() {
-        SpiegelOnlineDownloader downloader = new SpiegelOnlineDownloader(article);
-        try {
-            downloader.downloadContent(downloadImages);
-            handler.sendEmptyMessage(0);
-        } catch (ArticleDownloadException e) {
-            Message msg = new Message();
-            msg.what = 1;
-            msg.arg1 = e.getHttpCode();
-            handler.sendMessage(msg);
-        }
-    }
-
-    public void setDownloadImages(boolean downloadImages) {
-        this.downloadImages = downloadImages;
     }
 }
 

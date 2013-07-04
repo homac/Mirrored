@@ -12,6 +12,8 @@
 package de.homac.Mirrored.feed;
 
 import android.util.Log;
+
+import org.apache.commons.io.IOUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -65,7 +67,7 @@ public class RSSHandler extends DefaultHandler {
 			XMLReader tReader = tParser.getXMLReader();
 			tReader.setContentHandler(this);
 			if (online) {
-				String feedString = Helper.convertStreamToString(url.openStream());
+				String feedString = IOUtils.toString(url.openStream(), "ISO-8859-1");
 				tParser.parse(new ByteArrayInputStream(feedString.getBytes()),
 						this);
 			} else {

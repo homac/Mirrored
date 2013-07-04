@@ -2,7 +2,10 @@ package de.homac.Mirrored.provider;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.util.Log;
+
+import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,9 +14,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import de.homac.Mirrored.feed.ArticleDownloadException;
+import de.homac.Mirrored.common.CacheHelper;
 import de.homac.Mirrored.common.MDebug;
+import de.homac.Mirrored.feed.ArticleDownloadException;
 import de.homac.Mirrored.model.Article;
 
 public class SpiegelOnlineDownloader {
@@ -27,16 +33,19 @@ public class SpiegelOnlineDownloader {
     private static final String IMAGE = "<div class=\"spArticleImageBox";
 
     private final Article article;
+    private CacheHelper cacheHelper;
 
-    public SpiegelOnlineDownloader(Article article) {
+    public SpiegelOnlineDownloader(Article article, CacheHelper cacheHelper) {
         this.article = article;
+        this.cacheHelper = cacheHelper;
     }
 
     private Bitmap downloadImage(URL imageUrl) {
         Bitmap bitmap = null;
 
         try {
-            bitmap = BitmapFactory.decodeStream(imageUrl.openStream());
+            byte[] data = cacheHelper.loadCached(imageUrl, false);
+            bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
         } catch (IOException e) {
             if (MDebug.LOG)
                 Log.e(TAG, e.toString());
@@ -108,11 +117,11 @@ public class SpiegelOnlineDownloader {
         while ((line = reader.readLine()) != null && !(line.contains(CONTENT))) {
             line = line.trim();
             if (!skipTeaser) {
-                if (line.contains("<head>") || line.startsWith("<link") || line.contains("<meta")) {
+                if (line.contains("<head>") || line.contains("</head>")
+                        || line.startsWith("<link rel=\"stylesheet\"") || line.contains("<meta")) {
                     text.append(line);
                 }
             }
-            continue;
         }
         boolean hasImage=false;
 
@@ -129,7 +138,6 @@ public class SpiegelOnlineDownloader {
                     text.append(line);
                 }
             }
-            continue;
         }
         text.append(line.substring(line.indexOf(TEASER)));
 
@@ -168,12 +176,62 @@ public class SpiegelOnlineDownloader {
         } else {
             if (MDebug.LOG)
                 Log.d(TAG, "Article doesn't have content, downloading and returning it");
-            article.setContent(downloadContentPage(1, downloadImage));
+            String content = downloadContentPage(1, downloadImage);
+            content = cleanupBody(content);
+            content = inlineAssets(content, P_IMG, true);
+            content = inlineAssets(content, P_LINK, false);
+            article.setContent(content);
         }
     }
 
+    private static final Pattern P_AD = Pattern.compile("<div class=\"[^\"]*spEms[^\"]*\">.*?</div>", Pattern.MULTILINE);
+
+    private String cleanupBody(String content) {
+        return P_AD.matcher(content).replaceAll("");
+    }
+
+    private static final Pattern P_IMG = Pattern.compile("<img\\s+src=\"([^\"]+)\"");
+    private static final Pattern P_LINK = Pattern.compile("<link\\s+rel=\"stylesheet\"\\s+type=\"text/css\"\\s+href=\"([^\"]+)\"\\s*/>");
+
+    private String inlineAssets(String content, Pattern pattern, boolean image) {
+        Matcher m = pattern.matcher(content);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            String assetUrl = m.group(1);
+            String replacement = m.group(0);
+            try {
+                URL url = new URL(article.getUrl(), assetUrl);
+                if (image) {
+                    //convert image to data: url
+                    byte[] data = IOUtils.toByteArray(url.openStream());
+                    String imgData = "data:image/jpg;base64," + Base64.encodeToString(data, Base64.NO_WRAP);
+                    replacement = "<img src=\"" + imgData + "\"";
+                } else {
+                    //insert stylesheet as-is
+                    String styleContent;
+                    if (cacheHelper != null) {
+                        styleContent = new String(cacheHelper.loadCached(url));
+                    } else {
+                        styleContent = IOUtils.toString(url);
+                    }
+                    replacement = "<style type=\"text/css\">" + styleContent + "</style>";
+                }
+            } catch (MalformedURLException e) {
+                if (MDebug.LOG)
+                    Log.w(TAG, "Failed to inline " + assetUrl, e);
+            } catch (IOException e) {
+                if (MDebug.LOG)
+                    Log.w(TAG, "Failed to inline " + assetUrl, e);
+            }
+            m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+        }
+        m.appendTail(sb);
+
+        return sb.toString();
+    }
+
     public void downloadThumbnailImage() {
-        if (article.getThumbnailImageUrl() != null)
+        if (article.getThumbnailImageUrl() != null && article.getThumbnailImage() == null)
             article.setThumbnailImage(downloadImage(article.getThumbnailImageUrl()));
     }
 

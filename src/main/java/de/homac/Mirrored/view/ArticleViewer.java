@@ -14,6 +14,7 @@ package de.homac.Mirrored.view;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.os.Build;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.view.MenuItem;
 import android.view.Menu;
@@ -27,6 +28,7 @@ import android.app.Activity;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import de.homac.Mirrored.common.Helper;
 import de.homac.Mirrored.common.MDebug;
 import de.homac.Mirrored.common.Mirrored;
 import de.homac.Mirrored.R;
@@ -42,8 +44,6 @@ public class ArticleViewer extends Activity {
     private WebView _webview;
     private DisplayMetrics _dm;
     private Article article;
-
-    static final String BASE_URL = "http://m.spiegel.de/";
 
     @Override
     protected void onCreate(Bundle icicle) {
@@ -84,7 +84,8 @@ public class ArticleViewer extends Activity {
 			app.screenOrientation = newOrientation;
 		}
 
-        _webview.loadDataWithBaseURL(getBaseUrl(article.getUrl()), article.getContent(), "text/html", "utf-8", article.getUrl().toString());
+        _webview.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ONLY);
+        _webview.loadDataWithBaseURL(Helper.getBaseUrl(article.getUrl()), article.getContent(), "text/html", "utf-8", article.getUrl().toString());
 
         initActionBar();
     }
@@ -94,10 +95,6 @@ public class ArticleViewer extends Activity {
             getActionBar().setHomeButtonEnabled(true);
             getActionBar().setDisplayHomeAsUpEnabled(true);
         }
-    }
-
-    private String getBaseUrl(URL url) {
-        return url.toString().substring(0, url.toString().lastIndexOf('/')+1);
     }
 
     @Override

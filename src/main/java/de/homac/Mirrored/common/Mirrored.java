@@ -29,6 +29,7 @@ import de.homac.Mirrored.R;
 import de.homac.Mirrored.model.Article;
 
 public class Mirrored extends Application {
+    private static Mirrored instance;
 
 	public String APP_NAME;
 
@@ -37,11 +38,16 @@ public class Mirrored extends Application {
     private Article article;
 	private Feed offlineFeed;
 	private boolean _offline_mode = false;
+    private CacheHelper cacheHelper;
 
     public enum Orientation { HORIZONTAL, VERTICAL }
 	public Orientation screenOrientation = null;
 
 	static public final String BASE_CATEGORY = "schlagzeilen";
+
+    public static Mirrored getInstance() {
+        return instance;
+    }
 
     public Article getArticle() {
         return article;
@@ -59,8 +65,13 @@ public class Mirrored extends Application {
         this.offlineFeed = offlineFeed;
     }
 
+    public CacheHelper getCacheHelper() {
+        return cacheHelper;
+    }
+
 	@Override
 	public void onCreate() {
+        cacheHelper = new CacheHelper(getCacheDir());
 
 		APP_NAME = getString(R.string.app_name);
 		TAG = APP_NAME;
@@ -69,10 +80,13 @@ public class Mirrored extends Application {
 			Log.d(TAG, "starting");
 
 		setOfflineMode(getPreferences().getBoolean("PrefStartWithOfflineMode", false));
+
+        instance = this;
 	}
 
 	@Override
 	public void onTerminate() {
+        instance = null;
 		if (MDebug.LOG)
 			Log.d(TAG, "onTerminate()");
 	}
