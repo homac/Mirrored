@@ -111,7 +111,7 @@ public class SpiegelOnlineDownloader {
     }
 
     private String extractArticleContent(BufferedReader reader, boolean skipTeaser, boolean downloadImage)
-            throws IOException {
+            throws IOException, ArticleDownloadException {
         StringBuilder text = new StringBuilder();
         String line = null;
         while ((line = reader.readLine()) != null && !(line.contains(CONTENT))) {
@@ -123,12 +123,15 @@ public class SpiegelOnlineDownloader {
                 }
             }
         }
-        boolean hasImage=false;
+        if (line == null) {
+            throw new ArticleDownloadException(404);
+        }
 
         if(!skipTeaser){ //write body tag
             text.append("<body>");
         }
         text.append(line.substring(line.indexOf(CONTENT)));
+        boolean hasImage=false;
         while (((line = reader.readLine()) != null) && !(line.contains(TEASER))) {
             if (!skipTeaser) {
                 if (!downloadImage && line.contains(IMAGE)) {
@@ -138,6 +141,9 @@ public class SpiegelOnlineDownloader {
                     text.append(line);
                 }
             }
+        }
+        if (line == null) {
+            throw new ArticleDownloadException(404);
         }
         text.append(line.substring(line.indexOf(TEASER)));
 
@@ -151,6 +157,9 @@ public class SpiegelOnlineDownloader {
             if (diffCount > 0) {
                 diffCount += countTag(line, "<div");
             }
+        }
+        if (line == null) {
+            throw new ArticleDownloadException(404);
         }
         if (line.contains("</div>")) {
             text.append(line.substring(0, line.lastIndexOf("</div>")));

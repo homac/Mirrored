@@ -41,10 +41,12 @@ public class Feed extends RSSHandler {
 
     @Override
     protected void addArticle(Article currentArticle) {
+
         // ugly hack: We currently don't support
         // "Fotostrecke and Videos:", so don't add article if it is one
         if (!currentArticle.getUrl().toString().contains("/fotostrecke/")
-                && !currentArticle.getUrl().toString().contains("/video/")) {
+                && !currentArticle.getUrl().toString().contains("/video/")
+                && currentArticle.getUrl().getHost().equals(feedUrl.getHost())) {
             super.addArticle(currentArticle);
         }
     }

@@ -51,8 +51,10 @@ public class RSSHandler extends DefaultHandler {
 	private ArrayList<Article> _articles = new ArrayList<Article>();
 	private StringBuffer stringBuffer;
 	private String feedCategory;
+    protected URL feedUrl;
 
 	public RSSHandler(URL url, boolean online, String feedCategory) {
+        feedUrl = url;
 		stringBuffer = new StringBuffer();
 		this.feedCategory = feedCategory;
 
