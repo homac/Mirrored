@@ -45,6 +45,8 @@
     Beim Starten sofort die gesamten Artikel herunterladen. Führt zu
     höherem Speicherverbrauch und längeren Startzeiten. Führt jedoch
     auch dazu, dass die Artikel schneller angezeigt werden.</string>
+  <string name="preference_download_all_wlan">3G-Traffic schonen</string>
+  <string name="preference_download_all_wlan_summary">Nur bei aktiver WLAN-Verbindung alles herunterladen.</string>
   <string name="preference_start_with_offline_mode">Start im
   Offline-Modus</string>
   <string name="preference_start_with_offline_mode_summary">Die Anwendung

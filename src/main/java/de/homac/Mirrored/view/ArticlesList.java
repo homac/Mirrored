@@ -156,8 +156,9 @@ public class ArticlesList extends ListActivity {
             }
         };
 
+        boolean allowDownloadForNet = !app.getPreferences().getBoolean("PrefDownloadAllWifi", true) || app.wifiConnected();
         loader.setInternetReady(_internetReady);
-        loader.setDownloadAllArticles(app.getPreferences().getBoolean("PrefDownloadAllArticles", false));
+        loader.setDownloadAllArticles(app.getPreferences().getBoolean("PrefDownloadAllArticles", false) && allowDownloadForNet);
         loader.setDownloadImages(app.getPreferences().getBoolean("PrefDownloadImages", true));
 
         loader.execute(category);

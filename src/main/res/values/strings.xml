@@ -44,6 +44,8 @@
     Immediately download all articles when starting or choosing a
     category. Causes longer startup times and more memory usage, but
     also results in faster article loading.</string>
+  <string name="preference_download_all_wlan">Conserve 3G traffic</string>
+  <string name="preference_download_all_wlan_summary">Only download all on Wifi connection.</string>
   <string name="preference_start_with_offline_mode">Start with offline
   mode</string>
   <string name="preference_start_with_offline_mode_summary">Always start

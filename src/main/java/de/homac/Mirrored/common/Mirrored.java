@@ -95,8 +95,7 @@ public class Mirrored extends Application {
 		if (_offline_mode)
 			return false;
 
-		ConnectivityManager cm = (ConnectivityManager)this
-			.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager cm = (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo info = (NetworkInfo)cm.getActiveNetworkInfo();
 		boolean online = true;
 
@@ -120,6 +119,19 @@ public class Mirrored extends Application {
 
 		return online;
 	}
+
+    public boolean wifiConnected() {
+        if (_offline_mode)
+            return false;
+
+        ConnectivityManager cm = (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = (NetworkInfo)cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+        boolean online = info.isConnected();
+        if (MDebug.LOG)
+            Log.d(TAG, "Wifi connected: " + online);
+        return online;
+    }
 
     public void setOfflineMode(boolean offline) {
 		if (MDebug.LOG)
