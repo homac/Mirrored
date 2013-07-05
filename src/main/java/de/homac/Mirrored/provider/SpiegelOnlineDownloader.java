@@ -5,19 +5,18 @@ import android.graphics.BitmapFactory;
 import android.util.Base64;
 import android.util.Log;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.http.client.HttpResponseException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.homac.Mirrored.common.CacheHelper;
+import de.homac.Mirrored.common.IOHelper;
 import de.homac.Mirrored.common.MDebug;
 import de.homac.Mirrored.feed.ArticleDownloadException;
 import de.homac.Mirrored.model.Article;
@@ -56,25 +55,14 @@ public class SpiegelOnlineDownloader {
 
     private String downloadContentPage(int page, boolean downloadImage) throws ArticleDownloadException {
         StringBuilder sb = new StringBuilder();
+        URL url = null;
         try {
 
-            URL url = getArticleUrl(page);
+            url = getArticleUrl(page);
             if (MDebug.LOG)
                 Log.d(TAG, "Downloading " + url.toString());
 
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            urlConnection.connect();
-            int responseCode = urlConnection.getResponseCode();
-            if (responseCode != 200) {
-                Log.e(TAG, String.format("Could not download url '%s'. Errorcode is:  %s.", url, responseCode));
-                throw new ArticleDownloadException(responseCode);
-            }
-
-            Log.d(TAG, String.format("Response code is %s", responseCode));
-            InputStream is = urlConnection.getInputStream();
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "ISO-8859-1"), 8 * 1024);
+            BufferedReader reader = new BufferedReader(new StringReader(IOHelper.toString(url, "ISO-8859-1")), 8 * 1024);
             if (page == 0) {
                 sb.append("<html>");
             }
@@ -89,13 +77,13 @@ public class SpiegelOnlineDownloader {
                     sb.append(downloadContentPage(page + 1, downloadImage));
                 }
             }
-            is.close();
         } catch (MalformedURLException e) {
             if (MDebug.LOG)
                 Log.e(TAG, e.toString());
         } catch (IOException e) {
             if (MDebug.LOG)
-                Log.e(TAG, e.toString());
+                Log.e(TAG, String.format("Could not download url '%s'", url), e);
+            throw new ArticleDownloadException((e instanceof HttpResponseException ? ((HttpResponseException) e).getStatusCode() : 500));
         }
         if (page == 1) {
             sb.append("</body></html>");
@@ -124,7 +112,7 @@ public class SpiegelOnlineDownloader {
             }
         }
         if (line == null) {
-            throw new ArticleDownloadException(404);
+            throw new ArticleDownloadException(501);
         }
 
         if(!skipTeaser){ //write body tag
@@ -143,7 +131,7 @@ public class SpiegelOnlineDownloader {
             }
         }
         if (line == null) {
-            throw new ArticleDownloadException(404);
+            throw new ArticleDownloadException(502);
         }
         text.append(line.substring(line.indexOf(TEASER)));
 
@@ -159,7 +147,7 @@ public class SpiegelOnlineDownloader {
             }
         }
         if (line == null) {
-            throw new ArticleDownloadException(404);
+            throw new ArticleDownloadException(503);
         }
         if (line.contains("</div>")) {
             text.append(line.substring(0, line.lastIndexOf("</div>")));
@@ -189,6 +177,9 @@ public class SpiegelOnlineDownloader {
             content = cleanupBody(content);
             content = inlineAssets(content, P_IMG, true);
             content = inlineAssets(content, P_LINK, false);
+            if (Thread.interrupted()) {
+                throw new ArticleDownloadException(500);
+            }
             article.setContent(content);
         }
     }
@@ -212,7 +203,7 @@ public class SpiegelOnlineDownloader {
                 URL url = new URL(article.getUrl(), assetUrl);
                 if (image) {
                     //convert image to data: url
-                    byte[] data = IOUtils.toByteArray(url.openStream());
+                    byte[] data = IOHelper.toByteArray(url);
                     String imgData = "data:image/jpg;base64," + Base64.encodeToString(data, Base64.NO_WRAP);
                     replacement = "<img src=\"" + imgData + "\"";
                 } else {
@@ -221,7 +212,7 @@ public class SpiegelOnlineDownloader {
                     if (cacheHelper != null) {
                         styleContent = new String(cacheHelper.loadCached(url));
                     } else {
-                        styleContent = IOUtils.toString(url);
+                        styleContent = IOHelper.toString(url);
                     }
                     replacement = "<style type=\"text/css\">" + styleContent + "</style>";
                 }
@@ -240,8 +231,10 @@ public class SpiegelOnlineDownloader {
     }
 
     public void downloadThumbnailImage() {
-        if (article.getThumbnailImageUrl() != null && article.getThumbnailImage() == null)
-            article.setThumbnailImage(downloadImage(article.getThumbnailImageUrl()));
+        if (article.getThumbnailImageUrl() != null && article.getThumbnailImage() == null) {
+            Bitmap img = downloadImage(article.getThumbnailImageUrl());
+            article.setThumbnailImage(img);
+        }
     }
 
     public static URL getFeedUrl(String category) {

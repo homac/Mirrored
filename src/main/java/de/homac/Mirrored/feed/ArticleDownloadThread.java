@@ -11,13 +11,11 @@ import de.homac.Mirrored.provider.SpiegelOnlineDownloader;
 public class ArticleDownloadThread implements Runnable {
     private final String TAG = "ArticleDownloadThread";
 
-    private Handler handler;
     private Article article;
     private boolean downloadContent;
     private boolean downloadImages;
 
-    public ArticleDownloadThread(Article article, Handler handler) {
-        this.handler = handler;
+    public ArticleDownloadThread(Article article) {
         this.article = article;
     }
 
@@ -31,18 +29,10 @@ public class ArticleDownloadThread implements Runnable {
             if (downloadImages) {
                 downloader.downloadThumbnailImage();
             }
-            if (handler != null)
-                handler.sendEmptyMessage(0);
         } catch (ArticleDownloadException e) {
             Log.e(TAG,
                     String.format("Could not fetch article '%s', statuscode was %s", article.getUrl(),
                             e.getHttpCode()));
-            if (handler != null) {
-                Message msg = new Message();
-                msg.what = 1;
-                msg.arg1 = e.getHttpCode();
-                handler.sendMessage(msg);
-            }
         }
     }
 

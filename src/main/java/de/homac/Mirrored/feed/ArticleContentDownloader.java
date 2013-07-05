@@ -15,6 +15,11 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import de.homac.Mirrored.common.MDebug;
 import de.homac.Mirrored.model.Article;
@@ -40,23 +45,23 @@ public class ArticleContentDownloader {
 	public void download() {
         if (MDebug.LOG)
             Log.d(TAG, "Loading " + articles.size() + " articles; downloadContent = " + downloadContent + ", downloadImages = " + downloadImages);
-		ArrayList<Thread> threads = new ArrayList<Thread>();
+
+        ExecutorService threadPool = Executors.newFixedThreadPool(4);
+
 		for (Article article : articles) {
-            ArticleDownloadThread loader = new ArticleDownloadThread(article, null);
+            ArticleDownloadThread loader = new ArticleDownloadThread(article);
             loader.setDownloadImages(downloadImages);
             loader.setDownloadContent(downloadContent);
 
-			Thread thread = new Thread(loader);
-			thread.start();
-			threads.add(thread);
+            threadPool.execute(loader);
 		}
 
-		// wait for all threads to finish
+        threadPool.shutdown();
+        // wait for all threads to finish
 		try {
-			for (Thread thread : threads) {
-				thread.join();
-			}
+            threadPool.awaitTermination(1, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
+            threadPool.shutdownNow();
 			if (MDebug.LOG)
 				Log.e(TAG, e.toString());
 		}

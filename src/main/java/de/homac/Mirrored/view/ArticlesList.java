@@ -14,8 +14,10 @@ package de.homac.Mirrored.view;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -46,6 +48,7 @@ import de.homac.Mirrored.common.Helper;
 import de.homac.Mirrored.common.MDebug;
 import de.homac.Mirrored.common.Mirrored;
 import de.homac.Mirrored.feed.ArticleContentDownloader;
+import de.homac.Mirrored.feed.ArticleDownloadException;
 import de.homac.Mirrored.feed.ArticleDownloadThread;
 import de.homac.Mirrored.feed.Feed;
 import de.homac.Mirrored.model.Article;
@@ -56,7 +59,7 @@ public class ArticlesList extends ListActivity {
 	static final int CONTEXT_MENU_SAVE_ID = 1;
     static final int REQ_PICK_CATEGORY = 0;
 
-	private boolean _internetReady;
+	private boolean _internetReady = false;
     private String category = null;
     private Feed feed;
 
@@ -72,8 +75,6 @@ public class ArticlesList extends ListActivity {
 
         super.onCreate(icicle);
 
-        _internetReady = app.online();
-
         // if (_prefDarkBackground)
         // setTheme(android.R.style.Theme_Black);
 
@@ -81,9 +82,9 @@ public class ArticlesList extends ListActivity {
             Log.d(TAG, "Setting content view");
         setContentView(R.layout.articles_list);
 
-        initCategory();
-
         registerForContextMenu(getListView());
+
+        initCategory();
 
         refresh();
     }
@@ -103,6 +104,13 @@ public class ArticlesList extends ListActivity {
 
     private void setCategory(String category) {
         this.category = category;
+    }
+
+    private void refresh() {
+        _internetReady = app.online();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            invalidateOptionsMenu();
+        }
 
         String title = category.substring(0, 1).toUpperCase() + category.substring(1);
         if (!_internetReady) {
@@ -114,38 +122,45 @@ public class ArticlesList extends ListActivity {
             }
         }
         setTitle(title);
-    }
 
-    private void refresh() {
-        _internetReady = app.online();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            invalidateOptionsMenu();
-        }
+        ArticleLoader loader = new ArticleLoader() {
+            private ProgressDialog pdialog;
 
-        final ProgressDialog pdialog = ProgressDialog.show(this, "",
-                getString(R.string.progress_dialog_load_all), true, false);
-
-        ArticleLoader loader = new ArticleLoader(new Handler() {
             @Override
-            public void handleMessage(Message msg) {
-                ArticleLoader ld = (ArticleLoader) msg.obj;
-                feed = ld.getFeed();
+            protected void onPreExecute() {
+                pdialog = ProgressDialog.show(ArticlesList.this, "",
+                        getString(R.string.progress_dialog_load_all), true, true, new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialogInterface) {
+                        cancel(true);
+                    }
+                });
+            }
+
+            @Override
+            protected void onCancelled() {
+                pdialog.dismiss();
+            }
+
+            @Override
+            protected void onPostExecute(Long result) {
+                pdialog.dismiss();
+
+                feed = getFeed();
                 List<Article> articles = feed.getArticles(category);
                 setListAdapter(new IconicAdapter(ArticlesList.this, articles));
-                app.setOfflineFeed(ld.getOfflineFeed());
-                pdialog.dismiss();
+                app.setOfflineFeed(getOfflineFeed());
 
                 if (articles.size() == 0)
                     Helper.showDialog(ArticlesList.this, getString(R.string.no_articles));
             }
-        });
-        loader.setCategory(category);
+        };
+
         loader.setInternetReady(_internetReady);
         loader.setDownloadAllArticles(app.getPreferences().getBoolean("PrefDownloadAllArticles", false));
         loader.setDownloadImages(app.getPreferences().getBoolean("PrefDownloadImages", true));
 
-        Thread thread = new Thread(loader);
-        thread.start();
+        loader.execute(category);
     }
 
     @Override
@@ -348,29 +363,56 @@ public class ArticlesList extends ListActivity {
         final Article article = (Article) getListAdapter().getItem(position);
 
         if (article.getContent() == null || article.getContent().length() == 0) {
-            final ProgressDialog pdialog = ProgressDialog.show(this, "",
-                    getString(R.string.progress_dialog_load), true, false);
+            AsyncTask<Article, Long, Integer> async = new AsyncTask<Article, Long, Integer>() {
+                public boolean downloadImages;
+                private ProgressDialog pdialog;
 
-            ArticleDownloadThread loader = new ArticleDownloadThread(article, new Handler() {
                 @Override
-                public void handleMessage(Message msg) {
+                protected void onPreExecute() {
+                    downloadImages = Mirrored.getInstance().getPreferences().getBoolean("PrefDownloadImages", true);
+
+                    pdialog = ProgressDialog.show(ArticlesList.this, "",
+                            getString(R.string.progress_dialog_load), true, true, new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialogInterface) {
+                            cancel(true);
+                        }
+                    });
+                }
+
+                @Override
+                protected Integer doInBackground(Article... articles) {
+                    SpiegelOnlineDownloader loader = new SpiegelOnlineDownloader(articles[0], Mirrored.getInstance().getCacheHelper());
+                    try {
+                        loader.downloadContent(downloadImages);
+                        return 0;
+                    } catch (ArticleDownloadException e) {
+                        if (MDebug.LOG)
+                            Log.e(TAG, String.format("Could not fetch article '%s', statuscode was %s", articles[0].getUrl(), e.getHttpCode()));
+                        return e.getHttpCode();
+                    }
+                }
+
+                @Override
+                protected void onCancelled() {
+                    pdialog.dismiss();
+                }
+
+                @Override
+                protected void onPostExecute(Integer result) {
                     pdialog.dismiss();
 
-                    if (msg.what == 0) {
+                    if (result == 0) {
                         openArticleViewer(article);
                     } else {
-                        Spanned text = Html.fromHtml(getString(R.string.article_download_error, msg.arg1));
+                        Spanned text = Html.fromHtml(getString(R.string.article_download_error, result));
                         Toast toast = Toast.makeText(app.getBaseContext(), text, Toast.LENGTH_SHORT);
                         toast.setGravity(Gravity.TOP, 0, 0);
                         toast.show();
                     }
                 }
-            });
-            loader.setDownloadContent(true);
-            loader.setDownloadImages(app.getPreferences().getBoolean("PrefDownloadImages", true));
-
-            Thread thread = new Thread(loader);
-            thread.start();
+            };
+            async.execute(article);
         } else {
             openArticleViewer(article);
         }
@@ -432,22 +474,17 @@ class IconicAdapter extends ArrayAdapter<Article> {
     }
 }
 
-class ArticleLoader implements Runnable {
+class ArticleLoader extends AsyncTask<String, Integer, Long> {
     private static final String TAG = "ArticleLoader";
 
-    private Handler handler;
     private boolean internetReady;
-    private String category;
     private boolean downloadAllArticles;
     private boolean downloadImages;
 
     private Feed feed, offlineFeed;
 
-    public ArticleLoader(Handler handler) {
-        this.handler = handler;
-    }
-
-    public void run() {
+    protected Long doInBackground(String... categories) {
+        String category = categories[0];
         URL url = SpiegelOnlineDownloader.getFeedUrl(category);
         // first thread run, run only once
         feed = new Feed(url, internetReady, category);
@@ -466,10 +503,7 @@ class ArticleLoader implements Runnable {
         // we're finally done
         if (MDebug.LOG)
             Log.d(TAG, "all articles fetched, sending message");
-        Message msg = new Message();
-        msg.what = 0;
-        msg.obj = this;
-        handler.sendMessage(msg);
+        return 0L;
     }
 
     private void downloadArticleParts(List<Article> articles) {
@@ -478,27 +512,23 @@ class ArticleLoader implements Runnable {
         downloader.download();
     }
 
-    public Feed getFeed() {
+    protected Feed getFeed() {
         return feed;
     }
 
-    public Feed getOfflineFeed() {
+    protected Feed getOfflineFeed() {
         return offlineFeed;
     }
 
-    void setInternetReady(boolean internetReady) {
+    public void setInternetReady(boolean internetReady) {
         this.internetReady = internetReady;
     }
 
-    void setCategory(String category) {
-        this.category = category;
-    }
-
-    void setDownloadAllArticles(boolean downloadAllArticles) {
+    public void setDownloadAllArticles(boolean downloadAllArticles) {
         this.downloadAllArticles = downloadAllArticles;
     }
 
-    void setDownloadImages(boolean downloadImages) {
+    public void setDownloadImages(boolean downloadImages) {
         this.downloadImages = downloadImages;
     }
 }

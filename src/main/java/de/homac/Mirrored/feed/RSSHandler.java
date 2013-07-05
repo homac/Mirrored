@@ -13,15 +13,11 @@ package de.homac.Mirrored.feed;
 
 import android.util.Log;
 
-import org.apache.commons.io.IOUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -35,7 +31,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.homac.Mirrored.common.Helper;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import de.homac.Mirrored.common.IOHelper;
 import de.homac.Mirrored.common.MDebug;
 import de.homac.Mirrored.model.Article;
 
@@ -69,7 +69,7 @@ public class RSSHandler extends DefaultHandler {
 			XMLReader tReader = tParser.getXMLReader();
 			tReader.setContentHandler(this);
 			if (online) {
-				String feedString = IOUtils.toString(url.openStream(), "ISO-8859-1");
+				String feedString = IOHelper.toString(url, "ISO-8859-1");
 				tParser.parse(new ByteArrayInputStream(feedString.getBytes()),
 						this);
 			} else {
@@ -89,9 +89,10 @@ public class RSSHandler extends DefaultHandler {
 			return;
 		} catch (IOException e) {
 			if (MDebug.LOG)
-				Log.e(TAG, e.toString());
+				Log.e(TAG, String.format("Failed to download feed '%s'", feedUrl), e);
 		} catch (SAXException e) {
-			Log.e(TAG, e.toString());
+            if (MDebug.LOG)
+			    Log.e(TAG, e.toString());
 		} catch (ParserConfigurationException e) {
 			if (MDebug.LOG)
 				Log.e(TAG, e.toString());

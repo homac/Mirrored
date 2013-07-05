@@ -4,19 +4,15 @@ import android.support.v4.util.LruCache;
 import android.util.Log;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URL;
-import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.zip.GZIPInputStream;
 
 public class CacheHelper {
     private static final String TAG = "CacheHelper";
@@ -76,7 +72,7 @@ public class CacheHelper {
             }
         }
 
-        data = IOUtils.toByteArray(url);
+        data = IOHelper.toByteArray(url);
         if (MDebug.LOG)
             Log.d(TAG, "Not found in cache: " + url + "; loaded from net.");
         memoryCache.put(key, data);
