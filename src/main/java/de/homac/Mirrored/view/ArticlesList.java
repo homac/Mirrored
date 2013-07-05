@@ -41,6 +41,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.homac.Mirrored.R;
@@ -229,7 +230,8 @@ public class ArticlesList extends ListActivity {
 				if (MDebug.LOG)
 					Log.d(TAG, "MENU_DELETE_ALL clicked");
 
-				for (Article article : app.getOfflineFeed().getArticles()) {
+				List<Article> toRemove = new ArrayList<Article>(app.getOfflineFeed().getArticles());
+                for (Article article : toRemove) {
                     // remove deleted row
                     ((IconicAdapter) getListView().getAdapter())
                             .remove(article);
