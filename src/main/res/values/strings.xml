@@ -18,6 +18,8 @@
   <string name="menu_preferences">Preferences</string>
   <string name="menu_save_all">Save all</string>
   <string name="menu_delete_all">Delete all</string>
+  <string name="menu_share">Share</string>
+  <string name="title_share_via">Share via</string>
   <string name="menu_save_article">Save</string>
   <string name="article_saved">Article saved</string>
   <string name="article_deleted">Article deleted</string>

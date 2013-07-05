@@ -57,6 +57,7 @@ import de.homac.Mirrored.provider.SpiegelOnlineDownloader;
 public class ArticlesList extends ListActivity {
 	static final int CONTEXT_MENU_DELETE_ID = 0;
 	static final int CONTEXT_MENU_SAVE_ID = 1;
+    static final int CONTEXT_MENU_SHARE_ID = 2;
     static final int REQ_PICK_CATEGORY = 0;
 
 	private boolean _internetReady = false;
@@ -290,6 +291,9 @@ public class ArticlesList extends ListActivity {
         Article article = (Article) getListAdapter().getItem(info.position);
 
         boolean availableOffline = app.getOfflineFeed().getArticles().contains(article);
+        if (_internetReady) {
+            menu.add(0, CONTEXT_MENU_SHARE_ID, 0, R.string.menu_share);
+        }
 		if (_internetReady && !availableOffline) {
 			menu.add(0, CONTEXT_MENU_SAVE_ID, 0, R.string.context_menu_save);
         }
@@ -351,6 +355,10 @@ public class ArticlesList extends ListActivity {
 					article.resetContent();
 
 				return true;
+
+            case CONTEXT_MENU_SHARE_ID:
+                Helper.shareUrl(this, article.getUrl());
+                return true;
 
 			default :
 				return super.onContextItemSelected(item);

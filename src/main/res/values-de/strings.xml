@@ -18,6 +18,8 @@
   <string name="menu_preferences">Einstellungen</string>
   <string name="menu_save_all">Alle speichern</string>
   <string name="menu_delete_all">Alle löschen</string>
+  <string name="menu_share">Teilen</string>
+  <string name="title_share_via">Teilen über</string>
   <string name="menu_save_article">Speichern</string>
   <string name="article_saved">Artikel gespeichert</string>
   <string name="article_deleted">Artikel gelöscht</string>

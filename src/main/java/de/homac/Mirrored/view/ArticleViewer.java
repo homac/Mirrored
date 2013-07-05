@@ -122,6 +122,10 @@ public class ArticleViewer extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent;
         switch (item.getItemId()) {
+            case R.id.menu_shareArticle:
+                Helper.shareUrl(this, article.getUrl());
+                return true;
+
             case R.id.menu_saveArticle:
                 if (MDebug.LOG)
                     Log.d(TAG, "MENU_SAVE_ARTICLE clicked");

@@ -2,6 +2,10 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:id="@+id/group_online">
+        <item android:id="@+id/menu_shareArticle"
+              android:icon="@android:drawable/ic_menu_share"
+              android:title="@string/menu_share"
+              android:showAsAction="ifRoom"/>
         <item android:id="@+id/menu_saveArticle"
               android:icon="@android:drawable/ic_menu_save"
               android:title="@string/menu_save_article" />
