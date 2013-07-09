@@ -11,8 +11,10 @@
 
 package de.homac.Mirrored.view;
 
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.util.Log;
 import android.preference.PreferenceActivity;
 import android.view.MenuItem;
@@ -35,6 +37,14 @@ public class Preferences extends PreferenceActivity {
 		addPreferencesFromResource(R.xml.preferences);
 
         initActionBar();
+
+        String version = "";
+        try {
+            version = " " + getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+        Preference aboutPref = getPreferenceScreen().findPreference("PrefAboutDialog");
+        aboutPref.setSummary(getString(R.string.app_name) + version);
 	}
 
     private void initActionBar() {
