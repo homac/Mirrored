@@ -28,7 +28,7 @@
     </activity>
 
     <activity android:name="de.homac.Mirrored.view.CategoriesList" android:launchMode="singleTop" />
-    <activity android:name="de.homac.Mirrored.view.ArticleViewer" android:configChanges="orientation|keyboardHidden" />
+    <activity android:name="de.homac.Mirrored.view.ArticleViewer" />
     <activity android:name="de.homac.Mirrored.view.Preferences" android:label="@string/menu_preferences" android:launchMode="singleTop" />
   </application>
 </manifest>

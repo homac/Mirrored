@@ -67,6 +67,7 @@ public class ArticlesList extends ListActivity {
 
 	private final String TAG = "ArticlesList";
 	private Mirrored app;
+    private ProgressDialog progressDialog;
 
     @Override
 	protected void onCreate(Bundle icicle) {
@@ -86,9 +87,14 @@ public class ArticlesList extends ListActivity {
 
         registerForContextMenu(getListView());
 
-        initCategory();
+        ArticlesListStateHolder holder = (ArticlesListStateHolder) getLastNonConfigurationInstance();
+        if (holder != null) {
+            restoreState(holder);
+        } else {
+            initCategory();
 
-        refresh();
+            refresh();
+        }
     }
 
     private void initCategory() {
@@ -114,24 +120,12 @@ public class ArticlesList extends ListActivity {
             invalidateOptionsMenu();
         }
 
-        String title = category.substring(0, 1).toUpperCase() + category.substring(1);
-        if (!_internetReady) {
-            title += " (" + getString(R.string.caption_offline) + ")";
-            if (!app.getPreferences().getBoolean("PrefStartWithOfflineMode", false)) {
-                Toast.makeText(getApplicationContext(),
-                        R.string.switch_to_offline_mode, Toast.LENGTH_LONG)
-                        .show();
-            }
-        }
-        setTitle(title);
+        refreshTitle();
 
         ArticleLoader loader = new ArticleLoader() {
-            private ProgressDialog pdialog;
-
             @Override
             protected void onPreExecute() {
-                pdialog = ProgressDialog.show(ArticlesList.this, "",
-                        getString(R.string.progress_dialog_load_all), true, true, new DialogInterface.OnCancelListener() {
+                showProgressDialog(getString(R.string.progress_dialog_load_all), new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialogInterface) {
                         cancel(true);
@@ -141,12 +135,12 @@ public class ArticlesList extends ListActivity {
 
             @Override
             protected void onCancelled() {
-                pdialog.dismiss();
+                dismissProgressDialog();
             }
 
             @Override
             protected void onPostExecute(Long result) {
-                pdialog.dismiss();
+                dismissProgressDialog();
 
                 feed = getFeed();
                 List<Article> articles = feed.getArticles(category);
@@ -166,16 +160,46 @@ public class ArticlesList extends ListActivity {
         loader.execute(category);
     }
 
-    @Override
-	public void onConfigurationChanged(Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-		if (MDebug.LOG)
-			Log.d(TAG, "onConfigurationChanged()");
-		setContentView(R.layout.articles_list);
-		registerForContextMenu(getListView());
-	}
+    private void refreshTitle() {
+        String title = category.substring(0, 1).toUpperCase() + category.substring(1);
+        if (!_internetReady) {
+            title += " (" + getString(R.string.caption_offline) + ")";
+            if (!app.getPreferences().getBoolean("PrefStartWithOfflineMode", false)) {
+                Toast.makeText(getApplicationContext(),
+                        R.string.switch_to_offline_mode, Toast.LENGTH_LONG)
+                        .show();
+            }
+        }
+        setTitle(title);
+    }
 
-	@Override
+    @Override
+    public Object onRetainNonConfigurationInstance() {
+        if (MDebug.LOG)
+            Log.d(TAG, "onRetainNonConfigurationInstance");
+
+        cancelProgressDialog();
+
+        ArticlesListStateHolder holder = new ArticlesListStateHolder();
+        holder.category = category;
+        holder.feed = feed;
+        return holder;
+    }
+
+    private void restoreState(ArticlesListStateHolder holder) {
+        _internetReady = app.online();
+        setCategory(holder.category);
+        refreshTitle();
+        feed = holder.feed;
+        if (feed != null) {
+            List<Article> articles = feed.getArticles(category);
+            setListAdapter(new IconicAdapter(ArticlesList.this, articles));
+        } else {
+            refresh();
+        }
+    }
+
+    @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.articles_list, menu);
 		return true;
@@ -376,14 +400,12 @@ public class ArticlesList extends ListActivity {
         if (article.getContent() == null || article.getContent().length() == 0) {
             AsyncTask<Article, Long, Integer> async = new AsyncTask<Article, Long, Integer>() {
                 public boolean downloadImages;
-                private ProgressDialog pdialog;
 
                 @Override
                 protected void onPreExecute() {
                     downloadImages = Mirrored.getInstance().getPreferences().getBoolean("PrefDownloadImages", true);
 
-                    pdialog = ProgressDialog.show(ArticlesList.this, "",
-                            getString(R.string.progress_dialog_load), true, true, new DialogInterface.OnCancelListener() {
+                    showProgressDialog(getString(R.string.progress_dialog_load), new DialogInterface.OnCancelListener() {
                         @Override
                         public void onCancel(DialogInterface dialogInterface) {
                             cancel(true);
@@ -406,12 +428,12 @@ public class ArticlesList extends ListActivity {
 
                 @Override
                 protected void onCancelled() {
-                    pdialog.dismiss();
+                    dismissProgressDialog();
                 }
 
                 @Override
                 protected void onPostExecute(Integer result) {
-                    pdialog.dismiss();
+                    dismissProgressDialog();
 
                     if (result == 0) {
                         openArticleViewer(article);
@@ -435,6 +457,30 @@ public class ArticlesList extends ListActivity {
         Intent intent = new Intent(ArticlesList.this, ArticleViewer.class);
         startActivity(intent);
     }
+
+    private void showProgressDialog(String title, DialogInterface.OnCancelListener listener) {
+        cancelProgressDialog();
+        progressDialog = ProgressDialog.show(this, "", title, true, true, listener);
+    }
+
+    private void cancelProgressDialog() {
+        if (progressDialog != null) {
+            progressDialog.cancel();
+        }
+        progressDialog = null;
+    }
+
+    private void dismissProgressDialog() {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+        }
+        progressDialog = null;
+    }
+}
+
+class ArticlesListStateHolder {
+    String category;
+    Feed feed;
 }
 
 class IconicAdapter extends ArrayAdapter<Article> {

@@ -40,9 +40,6 @@ public class Mirrored extends Application {
 	private boolean _offline_mode = false;
     private CacheHelper cacheHelper;
 
-    public enum Orientation { HORIZONTAL, VERTICAL }
-	public Orientation screenOrientation = null;
-
 	static public final String BASE_CATEGORY = "schlagzeilen";
 
     public static Mirrored getInstance() {

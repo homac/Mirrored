@@ -42,7 +42,6 @@ public class ArticleViewer extends Activity {
 
     private boolean _online;
     private WebView _webview;
-    private DisplayMetrics _dm;
     private Article article;
 
     @Override
@@ -58,8 +57,25 @@ public class ArticleViewer extends Activity {
         setContentView(R.layout.article_viewer);
 
         _webview = (WebView) findViewById(R.id.webview);
+        _webview.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ONLY);
 
-        article = app.getArticle();
+        initActionBar();
+
+        article = (Article) getLastNonConfigurationInstance();
+        if (article == null) {
+            article = app.getArticle();
+        }
+        showArticle(article);
+    }
+
+    private void initActionBar() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            getActionBar().setHomeButtonEnabled(true);
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    private void showArticle(Article article) {
         if (MDebug.LOG)
             Log.d(TAG, "Received article from application with title: " + article.getTitle());
 
@@ -69,32 +85,15 @@ public class ArticleViewer extends Activity {
 
         if (article.getTitle() != null)
             setTitle(article.getTitle());
-        _dm = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(_dm);
 
-        // check if screen orientation changed and relead the article content
-        Mirrored.Orientation newOrientation = _getOrientation(_dm);
-        if (app.screenOrientation == null) { //first time
-            app.screenOrientation = newOrientation;
-        } else if (app.screenOrientation != newOrientation && _online) {
-            if (MDebug.LOG)
-                Log.d(TAG, "Screen orientation changed, redownloading article content");
-            article.resetContent();
-//			article.getContent(_dm, _online);
-			app.screenOrientation = newOrientation;
-		}
-
-        _webview.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ONLY);
         _webview.loadDataWithBaseURL(Helper.getBaseUrl(article.getUrl()), article.getContent(), "text/html", "utf-8", article.getUrl().toString());
-
-        initActionBar();
     }
 
-    private void initActionBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            getActionBar().setHomeButtonEnabled(true);
-            getActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+    @Override
+    public Object onRetainNonConfigurationInstance() {
+        if (MDebug.LOG)
+            Log.d(TAG, "onRetainNonConfigurationInstance");
+        return article;
     }
 
     @Override
@@ -154,12 +153,5 @@ public class ArticleViewer extends Activity {
                 return true;
         }
         return false;
-    }
-
-    private Mirrored.Orientation _getOrientation(DisplayMetrics dm) {
-        if (dm.heightPixels < dm.widthPixels) {
-            return Mirrored.Orientation.HORIZONTAL;
-        } else
-            return Mirrored.Orientation.VERTICAL;
     }
 }
