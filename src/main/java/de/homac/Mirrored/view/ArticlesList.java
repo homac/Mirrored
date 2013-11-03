@@ -111,7 +111,8 @@ public class ArticlesList extends ListActivity {
     }
 
     private void setCategory(String category) {
-        this.category = category;
+        // currently all categories have to be lower case for the URL
+        this.category = category.toLowerCase();
     }
 
     private void refresh() {
