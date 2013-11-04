@@ -8,3 +8,9 @@ Build instructions:
 
 - ant debug
 - adb install -r ./bin/Mirrored-debug.apk
+
+Release instructions:
+- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ~/.android/android-release-key.keystore build/apk/Mirrored-release-unsigned.apk android-release-key
+- zipalign 4 Mirrored-release-unsigned.apk Mirrored-release-signed-aligned.apk
+- Tip: List keystore: $ keytool -keystore mykey.keystore -list 
+
