@@ -100,12 +100,6 @@ public class Mirrored extends Application {
 			online = false;
 		}
 
-		if (info != null && info.isRoaming()){
-			//here is the roaming option you can change it if you want to disable
-			//internet while roaming, just return false
-			online = false;
-		}
-
 		if (online) {
 			if (MDebug.LOG)
 				Log.d(TAG, "Internet state: online");
