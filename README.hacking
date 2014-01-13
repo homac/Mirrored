@@ -6,7 +6,7 @@ Source:
 
 Build instructions:
 
-- ant debug
+- gradle {assembleDebug,assembleRelease}
 - adb install -r ./bin/Mirrored-debug.apk
 
 Release instructions:
