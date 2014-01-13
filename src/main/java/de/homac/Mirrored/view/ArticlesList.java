@@ -244,7 +244,6 @@ public class ArticlesList extends ListActivity {
 				if (MDebug.LOG)
 					Log.d(TAG, "MENU_SAVE_ALL clicked");
 
-				app.getOfflineFeed().getArticles().clear();
                 app.getOfflineFeed().getArticles().addAll(feed.getArticles());
 
                 app.saveOfflineFeed(this, null);
