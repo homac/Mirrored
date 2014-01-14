@@ -83,6 +83,11 @@ public class ArticleViewer extends Activity {
         if (MDebug.LOG)
             Log.d(TAG, "Received article from application with title: " + article.getTitle());
 
+        if (article == null) {
+            Log.d(TAG, "Article is null, this mustn't happen");
+            return;
+        }
+
         /* Add some debugging */
         if (article.getTitle() == null)
             Log.d(TAG, "Article title is null");
