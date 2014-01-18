@@ -136,14 +136,19 @@ public class SpiegelOnlineDownloader {
         text.append(line.substring(line.indexOf(TEASER)));
 
         int diffCount = 1;
+        int openDivs;
+        int closeDivs;
         while (((line = reader.readLine()) != null) && diffCount > 0) {
-            diffCount -= countTag(line, "</div>");
+            openDivs = countTag(line, "<div");
+            closeDivs = countTag(line, "</div>");
+
+            diffCount -= closeDivs;
+
             if (diffCount == 1) {
-                // skip inner diffs -> fotostrecke, etc
                 text.append(line);
             }
-            if (diffCount > 0) {
-                diffCount += countTag(line, "<div");
+            if (diffCount > 0 || (openDivs > 0 && closeDivs > openDivs)) {
+                diffCount += openDivs;
             }
         }
         if (line == null) {
@@ -184,7 +189,7 @@ public class SpiegelOnlineDownloader {
         }
     }
 
-    private static final Pattern P_AD = Pattern.compile("<div class=\"[^\"]*spEms[^\"]*\">.*?</div>", Pattern.MULTILINE);
+    private static final Pattern P_AD = Pattern.compile("<div class=\"[^\"]*spEms[^\"]*\">.*?</div></div>", Pattern.MULTILINE);
 
     private String cleanupBody(String content) {
         return P_AD.matcher(content).replaceAll("");
