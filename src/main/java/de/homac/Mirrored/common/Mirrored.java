@@ -154,7 +154,7 @@ public class Mirrored extends Application {
             Thread thread = new Thread(saver);
             thread.start();
         } else {
-            Helper.showDialog(this, getString(R.string.error_saving));
+            Helper.showDialog(context, getString(R.string.error_saving));
         }
     }
 }
