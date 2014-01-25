@@ -30,6 +30,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -40,7 +41,7 @@ import de.homac.Mirrored.common.MDebug;
 import de.homac.Mirrored.model.Article;
 
 public class RSSHandler extends DefaultHandler {
-    public static final DateFormat RSS822_DATE = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+    public static final DateFormat RSS822_DATE = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
 
 	// feed variables
 	protected final String TAG = "RSSHandler";
@@ -146,7 +147,10 @@ public class RSSHandler extends DefaultHandler {
             try {
                 _currentArticle.setPubDate(RSS822_DATE.parse(tString));
             } catch (ParseException e) {
-            }
+                if (MDebug.LOG) {
+                    Log.e(TAG, e.toString());
+                }
+        }
         } else if (name.trim().equals("item")) {
 			// Subfeeds e.g. netzwelt oder kultur have no category tag, so
 			// calculate it from url
