@@ -17,6 +17,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,6 +28,7 @@ import android.os.Message;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
@@ -515,16 +519,22 @@ class IconicAdapter extends ArrayAdapter<Article> {
 
         Article article = articles.get(position);
 
-        TextView headline = (TextView) row
-                .findViewById(R.id.article_headline);
+        TextView headline = (TextView) row.findViewById(R.id.article_headline);
         TextView date = (TextView) row.findViewById(R.id.article_date);
-        ImageView image = (ImageView) row.findViewById(R.id.article_image);
-        TextView description = (TextView) row
-                .findViewById(R.id.article_description);
+        TextView description = (TextView) row.findViewById(R.id.article_description);
 
         headline.setText(article.getTitle());
-        image.setImageBitmap(article.getThumbnailImage());
         description.setText(Html.fromHtml(article.getDescription()));
+        if (article.getThumbnailImage() != null) {
+            float ar = (float)article.getThumbnailImage().getWidth() / article.getThumbnailImage().getHeight();
+            Drawable thumb = new BitmapDrawable(getContext().getResources(), article.getThumbnailImage());
+            //scale bitmap to 90dp height
+            int dim = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 90, getContext().getResources().getDisplayMetrics());
+            thumb.setBounds(0, 0, dim, (int)(dim/ar));
+            description.setCompoundDrawables(thumb, null, null, null);
+        } else {
+            description.setCompoundDrawables(null, null, null, null);
+        }
         date.setText(article.pubDateString());
 
         return row;

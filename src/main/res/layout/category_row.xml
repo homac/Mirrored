@@ -17,7 +17,8 @@
 	    android:paddingLeft="20dip"
 	    android:paddingRight="0dip"
 	    android:textStyle="bold"
-	    android:layout_height="wrap_content"/>
+	    android:layout_height="wrap_content"
+       android:text="Placeholder"/>
 
   <TextView android:id="@+id/category_arrow"
 	    android:layout_width="match_parent"
