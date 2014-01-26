@@ -28,8 +28,6 @@ import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -44,20 +42,19 @@ public class RSSHandler extends DefaultHandler {
     public static final DateFormat RSS822_DATE = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
 
 	// feed variables
-	protected final String TAG = "RSSHandler";
+	protected static final String TAG = "RSSHandler";
 
 	// Feed and Article objects to use for temporary storage
+    private Feed feed;
 	private Article _currentArticle;
-
-	private ArrayList<Article> _articles = new ArrayList<Article>();
 	private StringBuffer stringBuffer;
-	private String feedCategory;
-    protected URL feedUrl;
 
-	public RSSHandler(URL url, boolean online, String feedCategory) {
-        feedUrl = url;
+	public RSSHandler() {
+    }
+
+    public Feed download(URL url, boolean online, String feedCategory) {
+        feed = new Feed(url, feedCategory);
 		stringBuffer = new StringBuffer();
-		this.feedCategory = feedCategory;
 
 		_currentArticle = new Article();
 		// fetch and parse required feed content
@@ -83,14 +80,14 @@ public class RSSHandler extends DefaultHandler {
 			if (MDebug.LOG) {
 				Log.e(TAG, "Feed currently not available: " + e.toString());
 			}
-			return;
+			return feed;
 		} catch (FileNotFoundException e) {
 			if (MDebug.LOG)
 				Log.e(TAG, "Feed currently not available: " + e.toString());
-			return;
+			return feed;
 		} catch (IOException e) {
 			if (MDebug.LOG)
-				Log.e(TAG, String.format("Failed to download feed '%s'", feedUrl), e);
+				Log.e(TAG, String.format("Failed to download feed '%s'", feed.getFeedUrl()), e);
 		} catch (SAXException e) {
             if (MDebug.LOG)
 			    Log.e(TAG, e.toString());
@@ -99,9 +96,11 @@ public class RSSHandler extends DefaultHandler {
 				Log.e(TAG, e.toString());
 		}
 		if (MDebug.LOG)
-			Log.d(TAG, "Found " + _articles.size() + " articles");
+			Log.d(TAG, "Found " + feed.getArticles().size() + " articles");
+        return feed;
 	}
 
+    @Override
 	public void startElement(String uri, String name, String qName,
 			Attributes atts) {
 		if (name.trim().equals("item")) {
@@ -122,6 +121,7 @@ public class RSSHandler extends DefaultHandler {
 		}
 	}
 
+    @Override
 	public void endElement(String uri, String name, String qName)
 			throws SAXException {
 		String tString = stringBuffer.toString().trim();
@@ -158,7 +158,7 @@ public class RSSHandler extends DefaultHandler {
 					|| _currentArticle.getFeedCategory().length() == 0) {
 				Log.w(TAG, "category of " + _currentArticle.getTitle()
 						+ " ist empty");
-				_currentArticle.setFeedCategory(feedCategory);
+				_currentArticle.setFeedCategory(feed.getFeedCategory());
 			}
 			// feedCategory;
 			// Check if looking for article, and if article is complete
@@ -166,7 +166,7 @@ public class RSSHandler extends DefaultHandler {
 					&& _currentArticle.getTitle().length() > 0
 					&& _currentArticle.getDescription().length() > 0) {
 				if (_currentArticle.getUrl() != null) {
-                    addArticle(_currentArticle);
+                    feed.addArticle(_currentArticle);
                     if (MDebug.LOG) {
                         Log.d(TAG, "SAX, added article with title: "
                                 + _currentArticle.getTitle());
@@ -178,15 +178,7 @@ public class RSSHandler extends DefaultHandler {
 		stringBuffer = new StringBuffer();
 	}
 
-    protected void addArticle(Article currentArticle) {
-        _articles.add(_currentArticle);
-    }
-
     public void characters(char ch[], int start, int length) {
 		stringBuffer.append(ch, start, length);
-	}
-
-	public List<Article> getArticles() {
-		return _articles;
 	}
 }

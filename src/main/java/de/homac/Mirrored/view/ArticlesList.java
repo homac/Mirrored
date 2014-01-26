@@ -16,8 +16,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -39,7 +37,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -54,8 +51,8 @@ import de.homac.Mirrored.common.MDebug;
 import de.homac.Mirrored.common.Mirrored;
 import de.homac.Mirrored.feed.ArticleContentDownloader;
 import de.homac.Mirrored.feed.ArticleDownloadException;
-import de.homac.Mirrored.feed.ArticleDownloadThread;
 import de.homac.Mirrored.feed.Feed;
+import de.homac.Mirrored.feed.RSSHandler;
 import de.homac.Mirrored.model.Article;
 import de.homac.Mirrored.provider.SpiegelOnlineDownloader;
 
@@ -74,13 +71,22 @@ public class ArticlesList extends ListActivity {
     private ProgressDialog progressDialog;
 
     @Override
-	protected void onCreate(Bundle icicle) {
+	protected void onCreate(Bundle savedInstanceState) {
         app = (Mirrored) getApplication();
 
         if (MDebug.LOG)
             Log.d(TAG, "onCreate()");
 
-        super.onCreate(icicle);
+        super.onCreate(savedInstanceState);
+
+        if (!isTaskRoot()) {
+            Intent intent = getIntent();
+            String action = intent.getAction();
+            if (intent.hasCategory(Intent.CATEGORY_LAUNCHER) && action != null && action.equals(Intent.ACTION_MAIN)) {
+                finish();
+                return;
+            }
+        }
 
         // if (_prefDarkBackground)
         // setTheme(android.R.style.Theme_Black);
@@ -91,9 +97,8 @@ public class ArticlesList extends ListActivity {
 
         registerForContextMenu(getListView());
 
-        ArticlesListStateHolder holder = (ArticlesListStateHolder) getLastNonConfigurationInstance();
-        if (holder != null) {
-            restoreState(holder);
+        if (savedInstanceState != null) {
+            restoreState(savedInstanceState);
         } else {
             initCategory();
 
@@ -179,29 +184,21 @@ public class ArticlesList extends ListActivity {
     }
 
     @Override
-    public Object onRetainNonConfigurationInstance() {
+    protected void onSaveInstanceState(Bundle outState) {
         if (MDebug.LOG)
-            Log.d(TAG, "onRetainNonConfigurationInstance");
+            Log.d(TAG, "onSaveInstanceState");
 
         cancelProgressDialog();
 
-        ArticlesListStateHolder holder = new ArticlesListStateHolder();
-        holder.category = category;
-        holder.feed = feed;
-        return holder;
+        outState.putString("category", category);
     }
 
-    private void restoreState(ArticlesListStateHolder holder) {
-        _internetReady = app.online();
-        setCategory(holder.category);
-        refreshTitle();
-        feed = holder.feed;
-        if (feed != null) {
-            List<Article> articles = feed.getArticles(category);
-            setListAdapter(new IconicAdapter(ArticlesList.this, articles));
-        } else {
-            refresh();
-        }
+    private void restoreState(Bundle state) {
+        if (MDebug.LOG)
+            Log.d(TAG, "restoreState");
+
+        setCategory(state.getString("category"));
+        refresh();
     }
 
     @Override
@@ -482,11 +479,6 @@ public class ArticlesList extends ListActivity {
     }
 }
 
-class ArticlesListStateHolder {
-    String category;
-    Feed feed;
-}
-
 class IconicAdapter extends ArrayAdapter<Article> {
     private static final String TAG = "IconicAdapter";
     private final List<Article> articles;
@@ -554,11 +546,11 @@ class ArticleLoader extends AsyncTask<String, Integer, Long> {
         String category = categories[0];
         URL url = SpiegelOnlineDownloader.getFeedUrl(category);
         // first thread run, run only once
-        feed = new Feed(url, internetReady, category);
+        feed = new RSSHandler().download(url, internetReady, category);
 
         if (internetReady) {
             // get offline feed also if online
-            offlineFeed = new Feed(url, false, category);
+            offlineFeed = new RSSHandler().download(url, false, category);
             if (MDebug.LOG)
                 Log.d(TAG, "Offline feed has " + offlineFeed.getArticles().size() + " articles");
 

@@ -18,36 +18,47 @@ import java.util.List;
 import de.homac.Mirrored.common.Mirrored;
 import de.homac.Mirrored.model.Article;
 
-public class Feed extends RSSHandler {
+public class Feed {
+    private ArrayList<Article> articles = new ArrayList<Article>();
+    private String feedCategory;
+    private URL feedUrl;
 
-	public Feed(URL url, boolean online, String feedCategory) {
-		super(url, online, feedCategory);
+	public Feed(URL feedUrl, String feedCategory) {
+        this.feedUrl = feedUrl;
+        this.feedCategory = feedCategory;
 	}
+
+    public List<Article> getArticles() {
+        return articles;
+    }
 
 	// only return those articles with a specific feedCategory
 	public List<Article> getArticles(String category) {
-		List<Article> articles = new ArrayList();
-		List<Article> all_articles = getArticles();
-
 		if (category.equals(Mirrored.BASE_CATEGORY))
-			return all_articles;
+			return articles;
 
-		for (Article article : all_articles)
+        List<Article> result = new ArrayList<Article>();
+        for (Article article : articles)
 			if (article.getFeedCategory().equals(category))
-				articles.add(article);
-
-		return articles;
+                result.add(article);
+		return result;
 	}
 
-    @Override
-    protected void addArticle(Article currentArticle) {
-
+    public void addArticle(Article currentArticle) {
         // ugly hack: We currently don't support
         // "Fotostrecke and Videos:", so don't add article if it is one
         if (!currentArticle.getUrl().toString().contains("/fotostrecke/")
                 && !currentArticle.getUrl().toString().contains("/video/")
                 && currentArticle.getUrl().getHost().equals(feedUrl.getHost())) {
-            super.addArticle(currentArticle);
+            articles.add(currentArticle);
         }
+    }
+
+    public String getFeedCategory() {
+        return feedCategory;
+    }
+
+    public URL getFeedUrl() {
+        return feedUrl;
     }
 }
