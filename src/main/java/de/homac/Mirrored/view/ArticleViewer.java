@@ -80,20 +80,18 @@ public class ArticleViewer extends Activity {
     }
 
     private void showArticle(Article article) {
-        if (MDebug.LOG)
-            Log.d(TAG, "Received article from application with title: " + article.getTitle());
-
         if (article == null) {
             Log.d(TAG, "Article is null, this mustn't happen");
             return;
         }
 
-        /* Add some debugging */
-        if (article.getTitle() == null)
-            Log.d(TAG, "Article title is null");
+        if (article.getTitle() != null) {
+            if (MDebug.LOG)
+                Log.d(TAG, "Received article from application with title: " + article.getTitle());
 
-        if (article.getTitle() != null)
             setTitle(article.getTitle());
+        } else
+            Log.d(TAG, "Article title is null");
 
         _webview.loadDataWithBaseURL(Helper.getBaseUrl(article.getUrl()), article.getContent(), "text/html", "utf-8", article.getUrl().toString());
     }
