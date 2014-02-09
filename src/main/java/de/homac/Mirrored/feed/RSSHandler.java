@@ -124,61 +124,61 @@ public class RSSHandler extends DefaultHandler {
     @Override
 	public void endElement(String uri, String name, String qName)
 			throws SAXException {
-		String tString = stringBuffer.toString().trim();
-		if (name.trim().equals("title")) {
-			_currentArticle.setTitle(tString);
-		} else if (name.trim().equals("link")) {
-			try {
+
+		try {
+			String tString = stringBuffer.toString().trim();
+
+			if (name.trim().equals("title"))
+				_currentArticle.setTitle(tString);
+			else if (name.trim().equals("link"))
 				_currentArticle.setUrl(new URL(tString));
-			} catch (MalformedURLException e) {
-				if (MDebug.LOG) {
-					Log.e(TAG, e.toString());
+			else if (name.trim().equals("description")) {
+				_currentArticle.setDescription(tString);
+			} else if (name.trim().equals("content")) {
+				_currentArticle.setContent(tString);
+			} else if (name.trim().equals("category")) {
+				_currentArticle.setFeedCategory(tString.toLowerCase());
+			} else if (name.trim().equals("guid")) {
+				_currentArticle.setGuid(tString);
+			} else if (name.trim().equals("pubDate")) {
+				_currentArticle.setPubDate(RSS822_DATE.parse(tString));
+			} else if (name.trim().equals("item")) {
+				// Subfeeds e.g. netzwelt oder kultur have no category tag, so
+				// calculate it from url
+				if (_currentArticle.getFeedCategory() == null
+				    || _currentArticle.getFeedCategory().length() == 0) {
+					Log.w(TAG, "category of " + _currentArticle.getTitle()
+					      + " ist empty");
+					_currentArticle.setFeedCategory(feed.getFeedCategory());
+				}
+				// feedCategory;
+				// Check if looking for article, and if article is complete
+				if (_currentArticle.getUrl() != null
+				    && _currentArticle.getTitle().length() > 0
+				    && _currentArticle.getDescription().length() > 0) {
+					if (_currentArticle.getUrl() != null) {
+						feed.addArticle(_currentArticle);
+						if (MDebug.LOG) {
+							Log.d(TAG, "SAX, added article with title: "
+							      + _currentArticle.getTitle());
+						}
+					}
+					_currentArticle = null;
 				}
 			}
-		} else if (name.trim().equals("description")) {
-			_currentArticle.setDescription(tString);
-		} else if (name.trim().equals("content")) {
-			_currentArticle.setContent(tString);
-		} else if (name.trim().equals("category")) {
-			_currentArticle.setFeedCategory(tString.toLowerCase());
-		} else if (name.trim().equals("guid")) {
-			_currentArticle.setGuid(tString);
-		} else if (name.trim().equals("pubDate")) {
-            try {
-                _currentArticle.setPubDate(RSS822_DATE.parse(tString));
-            } catch (ParseException e) {
-                if (MDebug.LOG) {
-                    Log.e(TAG, e.toString());
-                }
-        }
-        } else if (name.trim().equals("item")) {
-			// Subfeeds e.g. netzwelt oder kultur have no category tag, so
-			// calculate it from url
-			if (_currentArticle.getFeedCategory() == null
-					|| _currentArticle.getFeedCategory().length() == 0) {
-				Log.w(TAG, "category of " + _currentArticle.getTitle()
-						+ " ist empty");
-				_currentArticle.setFeedCategory(feed.getFeedCategory());
-			}
-			// feedCategory;
-			// Check if looking for article, and if article is complete
-			if (_currentArticle.getUrl() != null
-					&& _currentArticle.getTitle().length() > 0
-					&& _currentArticle.getDescription().length() > 0) {
-				if (_currentArticle.getUrl() != null) {
-                    feed.addArticle(_currentArticle);
-                    if (MDebug.LOG) {
-                        Log.d(TAG, "SAX, added article with title: "
-                                + _currentArticle.getTitle());
-                    }
-				}
-				_currentArticle = null;
-			}
+		} catch (Exception e) {
+			throw new SAXException("endElement(): uri: " + uri + ", name: " + name + ", qname: " + qName +
+					       ", exception: " + e.toString());
 		}
+
 		stringBuffer = new StringBuffer();
 	}
 
-    public void characters(char ch[], int start, int length) {
-		stringBuffer.append(ch, start, length);
+	public void characters(char ch[], int start, int length) throws SAXException {
+		try {
+			stringBuffer.append(ch, start, length);
+		} catch (OutOfMemoryError e) {
+			throw new SAXException("Out of memory while adding " + length + "characters");
+		}
 	}
 }
