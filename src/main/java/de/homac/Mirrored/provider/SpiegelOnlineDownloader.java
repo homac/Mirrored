@@ -27,9 +27,10 @@ public class SpiegelOnlineDownloader {
     private static final String FEED_PREFIX = "http://m.spiegel.de/";
     private static final String FEED_SUFFIX = "/index.rss";
 
-    private static final String TEASER = "<p id=\"spIntroTeaser\">";
+    private static final String TEASER = "<p id=\"spIntroTeaser\"";
     private static final String CONTENT = "<div class=\"spArticleContent\"";
     private static final String IMAGE = "<div class=\"spArticleImageBox";
+    private static final String VIDEO = "class=\"spVideoAsset";
 
     private final Article article;
     private CacheHelper cacheHelper;
@@ -122,7 +123,7 @@ public class SpiegelOnlineDownloader {
         boolean hasImage=false;
         while (((line = reader.readLine()) != null) && !(line.contains(TEASER))) {
             if (!skipTeaser) {
-                if (!downloadImage && line.contains(IMAGE)) {
+                if (!downloadImage && (line.contains(IMAGE) || line.contains(VIDEO))) {
                     hasImage=true;
                 }
                 if (!hasImage) {
