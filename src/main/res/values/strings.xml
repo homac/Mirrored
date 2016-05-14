@@ -83,4 +83,5 @@
         SD card, please make sure it is ready and try again.</string>
     <string name="article_download_error" formatted="false">
         Could not fetch article. &lt;br>  &lt;i>HTTP error code was: %d&lt;Id></string>
+  <string name="articles_refreshed">Articles updated</string>
 </resources>

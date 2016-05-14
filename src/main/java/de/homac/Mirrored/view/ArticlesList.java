@@ -23,6 +23,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
@@ -70,6 +71,8 @@ public class ArticlesList extends ListActivity {
 	private Mirrored app;
     private ProgressDialog progressDialog;
 
+    private SwipeRefreshLayout swipeView;
+
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
         app = (Mirrored) getApplication();
@@ -95,13 +98,24 @@ public class ArticlesList extends ListActivity {
             Log.d(TAG, "Setting content view");
         setContentView(R.layout.articles_list);
 
+        swipeView = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
+        swipeView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+
+            @Override
+            public void onRefresh() {
+                Log.d(TAG, "Show progress indicator and refresh articles");
+                Toast.makeText(getApplicationContext(), getString(R.string.articles_refreshed), Toast.LENGTH_SHORT).show();
+                swipeView.setRefreshing(true);
+                refresh();
+
+            }});
+
         registerForContextMenu(getListView());
 
         if (savedInstanceState != null) {
             restoreState(savedInstanceState);
         } else {
             initCategory();
-
             refresh();
         }
     }
@@ -135,16 +149,20 @@ public class ArticlesList extends ListActivity {
         ArticleLoader loader = new ArticleLoader() {
             @Override
             protected void onPreExecute() {
-                showProgressDialog(getString(R.string.progress_dialog_load_all), new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialogInterface) {
-                        cancel(true);
-                    }
-                });
+                if (!swipeView.isRefreshing()) {
+                    showProgressDialog(getString(R.string.progress_dialog_load_all), new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialogInterface) {
+                            cancel(true);
+                        }
+                    });
+                }
             }
 
             @Override
             protected void onCancelled() {
+                swipeView.setRefreshing(false);
+                Toast.makeText(getApplicationContext(), getString(R.string.articles_refreshed), Toast.LENGTH_SHORT).show();
                 dismissProgressDialog();
             }
 
@@ -157,6 +175,8 @@ public class ArticlesList extends ListActivity {
                 setListAdapter(new IconicAdapter(ArticlesList.this, articles));
                 app.setOfflineFeed(getOfflineFeed());
 
+                swipeView.setRefreshing(false);
+                Toast.makeText(getApplicationContext(), getString(R.string.articles_refreshed), Toast.LENGTH_SHORT).show();
                 if (articles.size() == 0)
                     Helper.showDialog(ArticlesList.this, getString(R.string.no_articles));
             }
@@ -285,15 +305,14 @@ public class ArticlesList extends ListActivity {
 					Helper.showDialog(this,
                             getString(R.string.please_check_internet));
 				else {
-					refresh();
-				}
+                    refresh();
+                }
 
 				return true;
 
 			case R.id.menu_refresh:
 				if (MDebug.LOG)
 					Log.d(TAG, "MENU_REFRESH clicked");
-
 				refresh();
 		}
 
@@ -312,7 +331,7 @@ public class ArticlesList extends ListActivity {
     @Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
-		super.onCreateContextMenu(menu, v, menuInfo);
+        super.onCreateContextMenu(menu, v, menuInfo);
 
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
         Article article = (Article) getListAdapter().getItem(info.position);
@@ -431,7 +450,6 @@ public class ArticlesList extends ListActivity {
                 protected void onCancelled() {
                     dismissProgressDialog();
                 }
-
                 @Override
                 protected void onPostExecute(Integer result) {
                     dismissProgressDialog();

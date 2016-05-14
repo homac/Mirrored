@@ -84,4 +84,5 @@
         ist und versuchen Sie es erneut.</string>
     <string name="article_download_error"  formatted="false">
         Konnte Artikel nicht herunteladen.&lt;br> &lt;i>HTTP Fehlercode war: %d&lt;Id></string>
+  <string name="articles_refreshed">Artikel aktualisiert</string>
 </resources>
