@@ -67,7 +67,7 @@ public class RSSHandler extends DefaultHandler {
 			XMLReader tReader = tParser.getXMLReader();
 			tReader.setContentHandler(this);
 			if (online) {
-				String feedString = IOHelper.toString(url, "ISO-8859-1");
+				String feedString = IOHelper.toString(url, "UTF-8");
 				tParser.parse(new ByteArrayInputStream(feedString.getBytes()),
 						this);
 			} else {

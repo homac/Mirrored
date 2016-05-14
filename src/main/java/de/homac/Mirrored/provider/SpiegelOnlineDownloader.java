@@ -63,7 +63,7 @@ public class SpiegelOnlineDownloader {
             if (MDebug.LOG)
                 Log.d(TAG, "Downloading " + url.toString());
 
-            BufferedReader reader = new BufferedReader(new StringReader(IOHelper.toString(url, "ISO-8859-1")), 8 * 1024);
+            BufferedReader reader = new BufferedReader(new StringReader(IOHelper.toString(url, "UTF-8")), 8 * 1024);
             if (page == 0) {
                 sb.append("<html>");
             }
