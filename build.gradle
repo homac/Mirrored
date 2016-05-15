@@ -35,8 +35,13 @@ android {
         release {
 	    signingConfig signingConfigs.release
 	}
+	debug {
+	    applicationIdSuffix ".debug"
+	}
     }
 
-    buildToolsVersion '23.0.2'
-    compileSdkVersion 21
+    useLibrary 'org.apache.http.legacy'
+
+    buildToolsVersion '23.0.3'
+    compileSdkVersion 23
 }
