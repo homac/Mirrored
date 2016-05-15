@@ -18,13 +18,25 @@ repositories{
 dependencies {
     compile 'com.android.support:support-v4:21.0.+'
     compile files('libs/android-support-v4.jar')
-    compile group: 'commons-io', name: 'commons-io', version: '2.0.1'
+    compile 'commons-io:commons-io:2.0.1'
 }
 
 android {
+    signingConfigs {
+        release {
+            keyAlias 'android-release-key'
+            keyPassword ''
+            storeFile file('/Users/macht/android-keystore/android-release-key.keystore')
+            storePassword ''
+        }
+    }
+
+    buildTypes {
+        release {
+	    signingConfig signingConfigs.release
+	}
+    }
+
     buildToolsVersion '23.0.2'
     compileSdkVersion 21
-}
-dependencies {
-    compile 'com.google.android.gms:play-services-appindexing:8.1.0'
 }
